@@ -6,7 +6,14 @@ const initialState: GameState = {
   player: {
     health: { current: 100, max: 100 },
     sanity: { current: 100, max: 100 },
-    attributes: { strength: 5, agility: 5, intelligence: 5 },
+    attributes: { 
+      strength: 5, 
+      dexterity: 5, 
+      constitution: 5, 
+      intelligence: 5, 
+      wisdom: 5, 
+      charisma: 5 
+    },
     inventory: [],
   },
   currentEventId: null,
