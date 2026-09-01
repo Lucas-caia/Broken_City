@@ -1,0 +1,94 @@
+:root {
+  --bg-color: #121212;
+  --text-color: #e0e0e0;
+  --border-style: 1px dashed #e0e0e0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+  color: var(--text-color);
+  font-family: 'Courier New', Courier, monospace; /* Fonte monoespaçada para o visual de terminal */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.game-container {
+  width: 800px;
+  max-width: 95vw;
+  height: 90vh;
+  border: var(--border-style);
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-color);
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 20px;
+  border-bottom: var(--border-style);
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.event-image-container {
+  height: 40%;
+  border-bottom: var(--border-style);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  background-color: #050505;
+}
+
+.event-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8; /* Mantém a imagem levemente escura */
+}
+
+.narrative-section {
+  flex: 1;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.narrative-text {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  text-align: center;
+  max-width: 80%;
+}
+
+.choices-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  align-items: center;
+}
+
+.choice-btn {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 5px 15px;
+}
+
+.choice-btn:hover {
+  background-color: var(--text-color);
+  color: var(--bg-color);
+}
