@@ -1,12 +1,12 @@
 export type RunState = 'IDLE' | 'PLAYING' | 'EVENT' | 'GAME_OVER';
 
 export interface Attributes {
-  strength: number;      // Força
-  dexterity: number;     // Destreza
-  constitution: number;  // Constituição
-  intelligence: number;  // Inteligência
-  wisdom: number;        // Sabedoria
-  charisma: number;      // Carisma
+  strength: number;
+  dexterity: number;
+  constitution: number; 
+  intelligence: number;
+  wisdom: number;      
+  charisma: number;      
 }
 
 export interface Item {
@@ -20,6 +20,7 @@ export interface PlayerData {
   sanity: { current: number; max: number };
   attributes: Attributes;
   inventory: Item[];
+  flags: string[];
 }
 
 export interface GameState {

@@ -1,23 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGameState } from '../../game/core/GameStateContext';
+import { useEventEngine } from '../../game/systems/useEventEngine';
 import StatusScreen from './StatusScreen';
 import '../../styles/global.css';
 
-import eventImage from '../../assets/images/correntes.jpg';
-
 const App: React.FC = () => {
-  const { state } = useGameState();
+  const { state, setState } = useGameState();
+  const { currentEvent, availableChoices, makeChoice } = useEventEngine();
   const [showStatus, setShowStatus] = useState(false);
+
+  // Inicializa o primeiro evento caso a run acabe de começar
+  useEffect(() => {
+    if (state.runState === 'IDLE') {
+      setState(prev => ({ ...prev, runState: 'EVENT', currentEventId: 'EVT_CORREDOR_01' }));
+    }
+  }, [state.runState, setState]);
 
   return (
     <div className="game-container">
       <header className="hud">
         <span>HP {state.player.health.current}</span>
         <span>SAN {state.player.sanity.current}</span>
-        <button 
-          className="hud-btn" 
-          onClick={() => setShowStatus(!showStatus)}
-        >
+        <button className="hud-btn" onClick={() => setShowStatus(!showStatus)}>
           {showStatus ? 'Fechar Status' : 'Status'}
         </button>
       </header>
@@ -27,18 +31,31 @@ const App: React.FC = () => {
       ) : (
         <>
           <section className="event-image-container">
-            <img src={eventImage} alt="Corredor escuro com correntes enferrujadas" />
+            {currentEvent.imageUrl ? (
+              <img src={`/src/assets/images/${currentEvent.imageUrl}`} alt={currentEvent.title} />
+            ) : (
+              <div style={{ color: '#555' }}>[ IMAGEM NÃO ENCONTRADA ]</div>
+            )}
           </section>
 
           <section className="narrative-section">
+            <h2 style={{ margin: 0, textTransform: 'uppercase', borderBottom: '1px solid #333' }}>
+              {currentEvent.title}
+            </h2>
             <div className="narrative-text">
-              O som de metal arrastando ecoa pelo corredor estreito. As correntes pendem do teto como trepadeiras mortas, bloqueando o caminho. O cheiro de ferrugem é sufocante.
+              {currentEvent.description}
             </div>
 
             <div className="choices-container">
-              <button className="choice-btn">[ Tentar afastar as correntes em silêncio ]</button>
-              <button className="choice-btn">[ Procurar outra rota no escuro ]</button>
-              <button className="choice-btn">[ Puxar uma corrente para testar a armadilha ]</button>
+              {availableChoices.map(choice => (
+                <button 
+                  key={choice.id} 
+                  className="choice-btn"
+                  onClick={() => makeChoice(choice)}
+                >
+                  {choice.text}
+                </button>
+              ))}
             </div>
           </section>
         </>

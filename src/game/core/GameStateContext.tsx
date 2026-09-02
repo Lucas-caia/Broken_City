@@ -12,8 +12,9 @@ const initialState: GameState = {
       constitution: 5, 
       intelligence: 5, 
       wisdom: 5, 
-      charisma: 5 
+      charisma: 5,
     },
+    flags: [],
     inventory: [],
   },
   currentEventId: null,
