@@ -92,3 +92,85 @@ body {
   background-color: var(--text-color);
   color: var(--bg-color);
 }
+/* --- Tela de Status --- */
+.status-container {
+  flex: 1;
+  display: flex;
+  padding: 20px;
+  gap: 30px;
+  background-color: var(--bg-color);
+  overflow-y: auto;
+}
+
+.status-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border-right: var(--border-style);
+  padding-right: 20px;
+}
+
+.portrait-placeholder {
+  width: 100%;
+  height: 250px;
+  border: var(--border-style);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #555;
+  font-size: 0.9rem;
+  /* Textura de preenchimento sombria */
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    #1a1a1a 10px,
+    #1a1a1a 20px
+  );
+}
+
+.status-right {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dotted #333;
+  padding-bottom: 5px;
+}
+
+.section-title {
+  margin: 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-bottom: var(--border-style);
+  padding-bottom: 5px;
+}
+
+.hud-btn {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+
+.hud-btn:hover {
+  color: #fff;
+  text-decoration: underline dashed;
+}
