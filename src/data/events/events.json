@@ -1,0 +1,34 @@
+[
+  {
+    "id": "EVT_CORREDOR_01",
+    "title": "O Corredor de Correntes",
+    "description": "O som de metal arrastando ecoa pelo corredor estreito. As correntes pendem do teto como trepadeiras mortas, bloqueando o caminho. O cheiro de ferrugem é sufocante.",
+    "imageUrl": "correntes.jpg",
+    "choices": [
+      {
+        "id": "CHOICE_01",
+        "text": "[ Tentar afastar as correntes em silêncio ]",
+        "consequences": [
+          { "type": "ATTRIBUTE_CHECK", "attribute": "dexterity", "targetValue": 6 }
+        ],
+        "nextEventId": "EVT_CORREDOR_RESULTADO_FURTIVIDADE"
+      },
+      {
+        "id": "CHOICE_02",
+        "text": "[ Procurar outra rota no escuro ]",
+        "consequences": [
+          { "type": "SANITY", "value": -10 }
+        ],
+        "nextEventId": "EVT_SALA_ESCURA"
+      },
+      {
+        "id": "CHOICE_03",
+        "text": "[ Puxar uma corrente para testar a armadilha ]",
+        "consequences": [
+          { "type": "HEALTH", "value": -15 }
+        ],
+        "nextEventId": "EVT_ARMADILHA_ATIVA"
+      }
+    ]
+  }
+]
