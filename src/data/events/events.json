@@ -7,15 +7,20 @@
     "choices": [
       {
         "id": "CHOICE_01",
-        "text": "[ Tentar afastar as correntes em silêncio ]",
+        "text": "[ Tentar afastar as correntes em silêncio (Destreza) ]",
         "consequences": [
-          { "type": "ATTRIBUTE_CHECK", "attribute": "dexterity", "targetValue": 6 }
-        ],
-        "nextEventId": "EVT_CORREDOR_RESULTADO_FURTIVIDADE"
+          {
+            "type": "ATTRIBUTE_CHECK",
+            "attribute": "dexterity",
+            "targetValue": 6,
+            "successEventId": "EVT_CORREDOR_RESULTADO_FURTIVIDADE",
+            "failEventId": "EVT_CORREDOR_FALHA_FURTIVIDADE"
+          }
+        ]
       },
       {
         "id": "CHOICE_02",
-        "text": "[ Procurar outra rota no escuro ]",
+        "text": "[ Procurar outra rota no escuro (-10 Sanidade) ]",
         "consequences": [
           { "type": "SANITY", "value": -10 }
         ],
@@ -23,11 +28,159 @@
       },
       {
         "id": "CHOICE_03",
-        "text": "[ Puxar uma corrente para testar a armadilha ]",
+        "text": "[ Puxar uma corrente para testar a armadilha (-15 Vida) ]",
         "consequences": [
           { "type": "HEALTH", "value": -15 }
         ],
         "nextEventId": "EVT_ARMADILHA_ATIVA"
+      }
+    ]
+  },
+  {
+    "id": "EVT_CORREDOR_RESULTADO_FURTIVIDADE",
+    "title": "Silêncio e Precisão",
+    "description": "Com dedos firmes, você move os elos enferrujados sem emitir nenhum estalo. O caminho se abre e você encontra uma chave enferrujada presa a uma viga de ferro.",
+    "imageUrl": "correntes.jpg",
+    "choices": [
+      {
+        "id": "CHOICE_FURTIVA_PEGAR_CHAVE",
+        "text": "[ Recolher a Chave Enferrujada e avançar ]",
+        "consequences": [
+          { "type": "FLAG", "flagId": "CHAVE_ENFERRUJADA" }
+        ],
+        "nextEventId": "EVT_PORTA_BLINDADA"
+      },
+      {
+        "id": "CHOICE_FURTIVA_IGNORAR",
+        "text": "[ Deixar a chave e seguir em frente rapidamente ]",
+        "consequences": [],
+        "nextEventId": "EVT_PORTA_BLINDADA"
+      }
+    ]
+  },
+  {
+    "id": "EVT_CORREDOR_FALHA_FURTIVIDADE",
+    "title": "O Eco Fatal",
+    "description": "Um elo escorrega dos seus dedos suados e bate com força no piso de metal. O estrondo ecoa pelo labirinto. Um gemido gutural responde na penumbra, abalando sua coragem.",
+    "imageUrl": "correntes.jpg",
+    "choices": [
+      {
+        "id": "CHOICE_FALHA_CORRER",
+        "text": "[ Correr desesperadamente em direção à saída adiante ]",
+        "consequences": [
+          { "type": "SANITY", "value": -15 },
+          { "type": "HEALTH", "value": -10 }
+        ],
+        "nextEventId": "EVT_PORTA_BLINDADA"
+      }
+    ]
+  },
+  {
+    "id": "EVT_SALA_ESCURA",
+    "title": "A Câmara Sufocante",
+    "description": "Você tateia as paredes úmidas em total escuridão. O ar é denso e gélido. Suas mãos tocam entalhes na rocha que parecem pulsar levemente sob seus dedos.",
+    "imageUrl": "correntes.jpg",
+    "choices": [
+      {
+        "id": "CHOICE_SALA_CONCENTRAR",
+        "text": "[ Respirar fundo e focar na estabilidade (+5 Sanidade) ]",
+        "consequences": [
+          { "type": "SANITY", "value": 5 }
+        ],
+        "nextEventId": "EVT_PORTA_BLINDADA"
+      },
+      {
+        "id": "CHOICE_SALA_FORCAR",
+        "text": "[ Forçar passagem entre escombros cortantes (-20 Vida) ]",
+        "consequences": [
+          { "type": "HEALTH", "value": -20 }
+        ],
+        "nextEventId": "EVT_PORTA_BLINDADA"
+      }
+    ]
+  },
+  {
+    "id": "EVT_ARMADILHA_ATIVA",
+    "title": "Mecanismo Rompido",
+    "description": "A tensão da corrente dispara um contrapeso oculto. Lâminas oxidadas chicoteiam pelo ar, rasgando carne e roupas antes de travarem ruidosamente no concreto.",
+    "imageUrl": "correntes.jpg",
+    "choices": [
+      {
+        "id": "CHOICE_ARMADILHA_ESTANCAR",
+        "text": "[ Pressionar o corte com força e seguir cambaleando ]",
+        "consequences": [
+          { "type": "HEALTH", "value": -10 },
+          { "type": "SANITY", "value": -10 }
+        ],
+        "nextEventId": "EVT_PORTA_BLINDADA"
+      }
+    ]
+  },
+  {
+    "id": "EVT_PORTA_BLINDADA",
+    "title": "O Portão de Ferro",
+    "description": "Diante de você ergue-se uma pesada porta de contenção blindada com uma tranca maciça. Um visor embaçado deixa entrever uma luz estável e segura do outro lado.",
+    "imageUrl": "correntes.jpg",
+    "choices": [
+      {
+        "id": "CHOICE_PORTA_COM_CHAVE",
+        "text": "[ Inserir a Chave Enferrujada no mecanismo trancado ]",
+        "requiredFlag": "CHAVE_ENFERRUJADA",
+        "consequences": [
+          { "type": "SANITY", "value": 15 }
+        ],
+        "nextEventId": "EVT_REFUGIO_ALCANCADO"
+      },
+      {
+        "id": "CHOICE_PORTA_ARROMBAR",
+        "text": "[ Bater o corpo contra a tranca para forçá-la (Força) ]",
+        "consequences": [
+          {
+            "type": "ATTRIBUTE_CHECK",
+            "attribute": "strength",
+            "targetValue": 8,
+            "successEventId": "EVT_REFUGIO_ALCANCADO",
+            "failEventId": "EVT_MORTE_EXAUSTAO"
+          }
+        ]
+      },
+      {
+        "id": "CHOICE_PORTA_DESISTIR",
+        "text": "[ Sentar-se e aceitar a derrota nas trevas ]",
+        "consequences": [
+          { "type": "SANITY", "value": -100 }
+        ],
+        "nextEventId": null
+      }
+    ]
+  },
+  {
+    "id": "EVT_REFUGIO_ALCANCADO",
+    "title": "Um Instante de Paz",
+    "description": "A pesada tranca cede com um estalo mecânico. Você entra, bate o portão e passa o trinco interno. O ar é limpo. Por enquanto, você sobreviveu a Broken City.",
+    "imageUrl": "correntes.jpg",
+    "choices": [
+      {
+        "id": "CHOICE_VITORIA_REINICIAR",
+        "text": "[ Celebrar a sobrevivência e completar a Run ]",
+        "consequences": [],
+        "nextEventId": null
+      }
+    ]
+  },
+  {
+    "id": "EVT_MORTE_EXAUSTAO",
+    "title": "Colapso Final",
+    "description": "Seus músculos ardem e você cai de joelhos diante do aço intransponível. O barulho dos seus golpes atraiu as criaturas que rastejavam pelo teto. Sua visão se apaga.",
+    "imageUrl": "correntes.jpg",
+    "choices": [
+      {
+        "id": "CHOICE_MORTE_ACEITAR",
+        "text": "[ Fechar os olhos ]",
+        "consequences": [
+          { "type": "HEALTH", "value": -100 }
+        ],
+        "nextEventId": null
       }
     ]
   }

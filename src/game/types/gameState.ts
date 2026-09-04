@@ -1,12 +1,12 @@
-export type RunState = 'IDLE' | 'PLAYING' | 'EVENT' | 'GAME_OVER';
+export type RunState = 'IDLE' | 'PLAYING' | 'EVENT' | 'GAME_OVER' | 'VICTORY';
 
 export interface Attributes {
   strength: number;
   dexterity: number;
-  constitution: number; 
+  constitution: number;
   intelligence: number;
-  wisdom: number;      
-  charisma: number;      
+  wisdom: number;
+  charisma: number;
 }
 
 export interface Item {
@@ -25,6 +25,8 @@ export interface PlayerData {
 
 export interface GameState {
   runState: RunState;
+  seed: number;
   player: PlayerData;
   currentEventId: string | null;
+  logHistory: string[];
 }
