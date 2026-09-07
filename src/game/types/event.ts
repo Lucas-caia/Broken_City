@@ -4,7 +4,8 @@ export type ConsequenceType =
   | 'ITEM'
   | 'ATTRIBUTE_CHECK'
   | 'ATTRIBUTE_CHANGE'
-  | 'FLAG';
+  | 'FLAG'
+  | 'START_COMBAT';
 
 export type AttributeName =
   | 'strength'
@@ -21,10 +22,11 @@ export interface Consequence {
   itemAction?: 'ADD' | 'REMOVE';
   itemId?: string;
   itemName?: string;
+  enemyId?: string; // ID do inimigo para iniciar combate
   attribute?: AttributeName;
   targetValue?: number;
-  successEventId?: string; // Ramificação de sucesso
-  failEventId?: string;    // Ramificação de falha
+  successEventId?: string; // Ramificação de sucesso / vitória
+  failEventId?: string;    // Ramificação de falha / derrota
 }
 
 export interface Choice {

@@ -1,4 +1,6 @@
-export type RunState = 'IDLE' | 'PLAYING' | 'EVENT' | 'GAME_OVER' | 'VICTORY';
+import { CombatState } from './combat';
+
+export type RunState = 'IDLE' | 'PLAYING' | 'EVENT' | 'COMBAT' | 'GAME_OVER' | 'VICTORY';
 
 export interface Attributes {
   strength: number;
@@ -16,6 +18,7 @@ export interface Item {
 }
 
 export interface PlayerData {
+  level: number;
   health: { current: number; max: number };
   sanity: { current: number; max: number };
   attributes: Attributes;
@@ -29,5 +32,6 @@ export interface GameState {
   seed: number;
   player: PlayerData;
   currentEventId: string | null;
+  combat?: CombatState | null;
   logHistory: string[];
 }

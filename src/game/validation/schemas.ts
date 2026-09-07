@@ -43,12 +43,21 @@ export const EnemySchema = z.object({
 export const EnemiesListSchema = z.array(EnemySchema);
 
 export const ConsequenceSchema = z.object({
-  type: z.enum(['HEALTH', 'SANITY', 'ITEM', 'ATTRIBUTE_CHECK', 'ATTRIBUTE_CHANGE', 'FLAG']),
+  type: z.enum([
+    'HEALTH',
+    'SANITY',
+    'ITEM',
+    'ATTRIBUTE_CHECK',
+    'ATTRIBUTE_CHANGE',
+    'FLAG',
+    'START_COMBAT',
+  ]),
   value: z.number().optional(),
   flagId: z.string().optional(),
   itemAction: z.enum(['ADD', 'REMOVE']).optional(),
   itemId: z.string().optional(),
   itemName: z.string().optional(),
+  enemyId: z.string().optional(),
   attribute: z
     .enum(['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'])
     .optional(),
@@ -177,6 +186,22 @@ export function validateEventsGraph(events: GameEvent[]): ValidationReport {
           if (!cons.itemId) {
             errors.push(
               `Evento "${event.id}" (escolha "${choice.id}") possui ITEM sem itemId`
+            );
+          }
+        } else if (cons.type === 'START_COMBAT') {
+          if (!cons.enemyId) {
+            errors.push(
+              `Evento "${event.id}" (escolha "${choice.id}") possui START_COMBAT sem enemyId`
+            );
+          }
+          if (cons.successEventId && !eventIds.has(cons.successEventId)) {
+            errors.push(
+              `Evento "${event.id}" (escolha "${choice.id}") aponta para successEventId inexistente: "${cons.successEventId}"`
+            );
+          }
+          if (cons.failEventId && !eventIds.has(cons.failEventId)) {
+            errors.push(
+              `Evento "${event.id}" (escolha "${choice.id}") aponta para failEventId inexistente: "${cons.failEventId}"`
             );
           }
         }

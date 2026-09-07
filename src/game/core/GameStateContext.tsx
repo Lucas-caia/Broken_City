@@ -10,8 +10,10 @@ import React, {
 import { GameState } from '../types/gameState';
 import { Choice, GameEvent } from '../types/event';
 import { BaseItem } from '../types/item';
+import { Enemy } from '../types/enemy';
 import rawEvents from '../../data/events/events.json';
 import rawItems from '../../data/items/items.json';
+import rawEnemies from '../../data/enemies/enemies.json';
 import { createEventsMap, resolveChoice } from './eventEngine';
 import { createRNG, Mulberry32RNG } from './rng';
 import {
@@ -19,12 +21,18 @@ import {
   validateEventsGraph,
   ItemsListSchema,
   validateItemsCatalog,
+  EnemiesListSchema,
+  validateEnemiesCatalog,
 } from '../validation/schemas';
 import {
   equipItem as equipItemHelper,
   unequipItem as unequipItemHelper,
   consumeItem as consumeItemHelper,
 } from '../systems/inventorySystem';
+import {
+  playCard as playCombatCardHelper,
+  endTurn as endCombatTurnHelper,
+} from '../systems/combatSystem';
 
 const SAVE_KEY = 'broken_city_save_v1';
 const STARTING_EVENT_ID = 'EVT_CORREDOR_01';
@@ -37,7 +45,7 @@ if (!eventsValidation.valid) {
 }
 const eventsMap = createEventsMap(eventsData);
 
-// Tipagem e validação do catálogo de itens (Issue #9)
+// Tipagem e validação do catálogo de itens
 const itemsData: BaseItem[] = ItemsListSchema.parse(rawItems);
 const itemsValidation = validateItemsCatalog(itemsData);
 if (!itemsValidation.valid) {
@@ -46,6 +54,17 @@ if (!itemsValidation.valid) {
 const itemsMap = new Map<string, BaseItem>();
 for (const item of itemsData) {
   itemsMap.set(item.id, item);
+}
+
+// Tipagem e validação do catálogo de inimigos
+const enemiesData: Enemy[] = EnemiesListSchema.parse(rawEnemies);
+const enemiesValidation = validateEnemiesCatalog(enemiesData);
+if (!enemiesValidation.valid) {
+  console.error('Erros no catálogo de inimigos:', enemiesValidation.errors);
+}
+const enemiesMap = new Map<string, Enemy>();
+for (const enemy of enemiesData) {
+  enemiesMap.set(enemy.id, enemy);
 }
 
 function createNewRunState(seed?: number): GameState {
@@ -58,6 +77,7 @@ function createNewRunState(seed?: number): GameState {
     runState: 'EVENT',
     seed: actualSeed,
     player: {
+      level: 1,
       health: { current: 100, max: 100 },
       sanity: { current: 100, max: 100 },
       attributes: {
@@ -73,6 +93,7 @@ function createNewRunState(seed?: number): GameState {
       equippedItemIds: [],
     },
     currentEventId: STARTING_EVENT_ID,
+    combat: null,
     logHistory: [`[INÍCIO DA RUN]: Seed da partida: ${actualSeed}`],
   };
 }
@@ -85,6 +106,9 @@ function loadSavedState(): GameState | null {
     if (parsed && parsed.player && parsed.runState) {
       if (!parsed.player.equippedItemIds) {
         parsed.player.equippedItemIds = [];
+      }
+      if (!parsed.player.level) {
+        parsed.player.level = 1;
       }
       return parsed;
     }
@@ -101,7 +125,9 @@ type GameAction =
   | { type: 'RESOLVE_CHOICE'; choice: Choice }
   | { type: 'EQUIP_ITEM'; itemId: string }
   | { type: 'UNEQUIP_ITEM'; itemId: string }
-  | { type: 'CONSUME_ITEM'; itemId: string };
+  | { type: 'CONSUME_ITEM'; itemId: string }
+  | { type: 'PLAY_COMBAT_CARD'; cardId: string }
+  | { type: 'END_COMBAT_TURN' };
 
 interface GameStateContextProps {
   state: GameState;
@@ -109,10 +135,14 @@ interface GameStateContextProps {
   eventsMap: Map<string, GameEvent>;
   itemsData: BaseItem[];
   itemsMap: Map<string, BaseItem>;
+  enemiesData: Enemy[];
+  enemiesMap: Map<string, Enemy>;
   makeChoice: (choice: Choice) => void;
   equipItem: (itemId: string) => void;
   unequipItem: (itemId: string) => void;
   consumeItem: (itemId: string) => void;
+  playCombatCard: (cardId: string) => void;
+  endCombatTurn: () => void;
   startRun: (seed?: number) => void;
   restartRun: (seed?: number) => void;
   clearSave: () => void;
@@ -143,7 +173,8 @@ export const GameStateProvider: React.FC<{ children: ReactNode }> = ({ children 
             action.choice,
             eventsMap,
             rngRef.current,
-            itemsMap
+            itemsMap,
+            enemiesMap
           );
           return nextState;
         }
@@ -226,6 +257,88 @@ export const GameStateProvider: React.FC<{ children: ReactNode }> = ({ children 
           };
         }
 
+        case 'PLAY_COMBAT_CARD': {
+          if (!currentState.combat) return currentState;
+
+          const result = playCombatCardHelper(currentState.combat, action.cardId);
+
+          if (result.error) {
+            return {
+              ...currentState,
+              combat: {
+                ...currentState.combat,
+                combatLog: [
+                  ...currentState.combat.combatLog,
+                  `[AVISO]: ${result.error}`,
+                ].slice(-15),
+              },
+            };
+          }
+
+          if (result.playerWon) {
+            const nextEvent =
+              result.nextCombat.victoryEventId || 'EVT_REFUGIO_ALCANCADO';
+            return {
+              ...currentState,
+              runState: 'EVENT',
+              currentEventId: nextEvent,
+              combat: null,
+              logHistory: [
+                ...currentState.logHistory,
+                `[VITÓRIA EM COMBATE]: Inimigo derrotado!`,
+              ].slice(-10),
+            };
+          }
+
+          return {
+            ...currentState,
+            combat: result.nextCombat,
+          };
+        }
+
+        case 'END_COMBAT_TURN': {
+          if (!currentState.combat) return currentState;
+
+          const result = endCombatTurnHelper(
+            currentState.combat,
+            currentState.player,
+            rngRef.current,
+            itemsMap
+          );
+
+          if (result.playerDied) {
+            return {
+              ...currentState,
+              runState: 'GAME_OVER',
+              player: result.updatedPlayer,
+              combat: null,
+              logHistory: [
+                ...currentState.logHistory,
+                '[FIM DA RUN]: Você foi derrotado em combate.',
+              ].slice(-10),
+            };
+          }
+
+          if (result.deckExhausted) {
+            return {
+              ...currentState,
+              runState: 'GAME_OVER',
+              player: result.updatedPlayer,
+              combat: null,
+              logHistory: [
+                ...currentState.logHistory,
+                '[EXAUSTÃO]: As 40 cartas do seu baralho acabaram! A partida terminou.',
+              ].slice(-10),
+            };
+          }
+
+          return {
+            ...currentState,
+            player: result.updatedPlayer,
+            combat: result.nextCombat,
+          };
+        }
+
         default:
           return currentState;
       }
@@ -243,7 +356,7 @@ export const GameStateProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   );
 
-  // Auto-save: persiste sempre que o estado da run sofrer alteração
+  // Auto-save
   useEffect(() => {
     try {
       if (state.runState === 'GAME_OVER' || state.runState === 'VICTORY') {
@@ -272,6 +385,14 @@ export const GameStateProvider: React.FC<{ children: ReactNode }> = ({ children 
     dispatch({ type: 'CONSUME_ITEM', itemId });
   };
 
+  const playCombatCard = (cardId: string) => {
+    dispatch({ type: 'PLAY_COMBAT_CARD', cardId });
+  };
+
+  const endCombatTurn = () => {
+    dispatch({ type: 'END_COMBAT_TURN' });
+  };
+
   const startRun = (seed?: number) => {
     dispatch({ type: 'START_RUN', seed });
   };
@@ -292,10 +413,14 @@ export const GameStateProvider: React.FC<{ children: ReactNode }> = ({ children 
       eventsMap,
       itemsData,
       itemsMap,
+      enemiesData,
+      enemiesMap,
       makeChoice,
       equipItem,
       unequipItem,
       consumeItem,
+      playCombatCard,
+      endCombatTurn,
       startRun,
       restartRun,
       clearSave,

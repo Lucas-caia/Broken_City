@@ -130,6 +130,14 @@
           { "type": "HEALTH", "value": -20 }
         ],
         "nextEventId": "EVT_PORTA_BLINDADA"
+      },
+      {
+        "id": "CHOICE_ENFRENTAR_SOMBRA",
+        "text": "[ Enfrentar A Sombra que espreita na escuridão (Combate) ]",
+        "consequences": [
+          { "type": "START_COMBAT", "enemyId": "a_sombra" }
+        ],
+        "nextEventId": "EVT_REFUGIO_ALCANCADO"
       }
     ]
   },

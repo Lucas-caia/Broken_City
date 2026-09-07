@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useGameState } from '../../game/core/GameStateContext';
 import { useEventEngine } from '../../game/systems/useEventEngine';
 import StatusScreen from './StatusScreen';
+import CombatScreen from './CombatScreen';
 import { getEventImageUrl } from '../utils/assetHelper';
 import '../../styles/global.css';
 
@@ -9,6 +10,11 @@ const App: React.FC = () => {
   const { state, restartRun } = useGameState();
   const { currentEvent, availableChoices, makeChoice } = useEventEngine();
   const [showStatus, setShowStatus] = useState(false);
+
+  // Tela de Combate Narrativo com Cartas
+  if (state.runState === 'COMBAT') {
+    return <CombatScreen />;
+  }
 
   const eventImageUrl = getEventImageUrl(currentEvent?.imageUrl);
   const latestLog = state.logHistory.length > 0 ? state.logHistory[state.logHistory.length - 1] : null;

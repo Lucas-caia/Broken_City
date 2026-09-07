@@ -1,6 +1,8 @@
 import { GameEvent, Choice } from '../types/event';
 import { GameState, Item } from '../types/gameState';
 import { BaseItem } from '../types/item';
+import { Enemy } from '../types/enemy';
+import { CombatState } from '../types/combat';
 import { Mulberry32RNG } from './rng';
 import {
   addItem,
@@ -8,6 +10,7 @@ import {
   hasItem,
   getEffectiveAttributes,
 } from '../systems/inventorySystem';
+import { startCombat } from '../systems/combatSystem';
 
 export interface ResolutionResult {
   nextState: GameState;
@@ -48,7 +51,7 @@ export function getAvailableChoices(
 
 /**
  * Função pura que resolve uma escolha do jogador:
- * - Executa consequências de vida, sanidade, flags, atributos e itens
+ * - Executa consequências de vida, sanidade, flags, atributos, itens e combates
  * - Executa rolagens determinísticas de teste de atributos via RNG considerando equipamentos
  * - Avalia ramificações de sucesso/falha
  * - Transiciona para GAME_OVER em caso de morte física ou colapso de sanidade
@@ -59,7 +62,8 @@ export function resolveChoice(
   choice: Choice,
   eventsMap: Map<string, GameEvent>,
   rng: Mulberry32RNG,
-  itemsRegistry?: Map<string, BaseItem>
+  itemsRegistry?: Map<string, BaseItem>,
+  enemiesMap?: Map<string, Enemy>
 ): ResolutionResult {
   // Cópia profunda e imutável do jogador
   const newPlayer = {
@@ -75,6 +79,7 @@ export function resolveChoice(
   let nextEventId: string | null = choice.nextEventId ?? null;
   let rollLog: string | undefined;
   const newLogs = [...state.logHistory];
+  let newCombat: CombatState | null = null;
 
   for (const cons of choice.consequences) {
     switch (cons.type) {
@@ -153,6 +158,24 @@ export function resolveChoice(
         break;
       }
 
+      case 'START_COMBAT': {
+        if (cons.enemyId && enemiesMap) {
+          const enemy = enemiesMap.get(cons.enemyId);
+          if (enemy) {
+            newCombat = startCombat(
+              newPlayer,
+              enemy,
+              itemsRegistry || new Map(),
+              rng,
+              cons.successEventId,
+              cons.failEventId
+            );
+            newLogs.push(`[INÍCIO DE COMBATE]: Confronto contra "${enemy.name}" iniciado!`);
+          }
+        }
+        break;
+      }
+
       case 'ATTRIBUTE_CHECK': {
         if (cons.attribute && cons.targetValue !== undefined) {
           const effectiveAttrs = getEffectiveAttributes(
@@ -178,10 +201,12 @@ export function resolveChoice(
     }
   }
 
-  // Verificar condições de Game Over e Vitória
+  // Verificar condições de transição
   let nextRunState = state.runState;
 
-  if (newPlayer.health.current <= 0) {
+  if (newCombat) {
+    nextRunState = 'COMBAT';
+  } else if (newPlayer.health.current <= 0) {
     nextRunState = 'GAME_OVER';
     newLogs.push('[FIM DA RUN]: Você sucumbiu à gravidade dos ferimentos.');
   } else if (newPlayer.sanity.current <= 0) {
@@ -211,6 +236,7 @@ export function resolveChoice(
     runState: nextRunState,
     player: newPlayer,
     currentEventId: nextEventId,
+    combat: newCombat || state.combat || null,
     logHistory: trimmedLogs,
   };
 
