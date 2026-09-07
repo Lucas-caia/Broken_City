@@ -1,6 +1,13 @@
 import { GameEvent, Choice } from '../types/event';
 import { GameState, Item } from '../types/gameState';
+import { BaseItem } from '../types/item';
 import { Mulberry32RNG } from './rng';
+import {
+  addItem,
+  removeItem,
+  hasItem,
+  getEffectiveAttributes,
+} from '../systems/inventorySystem';
 
 export interface ResolutionResult {
   nextState: GameState;
@@ -31,10 +38,7 @@ export function getAvailableChoices(
       return false;
     }
     if (choice.requiredItem) {
-      const hasItem = inventory.some(
-        it => it.id === choice.requiredItem && it.quantity > 0
-      );
-      if (!hasItem) {
+      if (!hasItem(inventory, choice.requiredItem, 1)) {
         return false;
       }
     }
@@ -45,7 +49,7 @@ export function getAvailableChoices(
 /**
  * Função pura que resolve uma escolha do jogador:
  * - Executa consequências de vida, sanidade, flags, atributos e itens
- * - Executa rolagens determinísticas de teste de atributos via RNG
+ * - Executa rolagens determinísticas de teste de atributos via RNG considerando equipamentos
  * - Avalia ramificações de sucesso/falha
  * - Transiciona para GAME_OVER em caso de morte física ou colapso de sanidade
  * - Retorna o novo estado imutável sem efeitos colaterais
@@ -54,7 +58,8 @@ export function resolveChoice(
   state: GameState,
   choice: Choice,
   eventsMap: Map<string, GameEvent>,
-  rng: Mulberry32RNG
+  rng: Mulberry32RNG,
+  itemsRegistry?: Map<string, BaseItem>
 ): ResolutionResult {
   // Cópia profunda e imutável do jogador
   const newPlayer = {
@@ -64,6 +69,7 @@ export function resolveChoice(
     attributes: { ...state.player.attributes },
     flags: [...state.player.flags],
     inventory: state.player.inventory.map(item => ({ ...item })),
+    equippedItemIds: [...(state.player.equippedItemIds || [])],
   };
 
   let nextEventId: string | null = choice.nextEventId ?? null;
@@ -128,33 +134,16 @@ export function resolveChoice(
         const itemName = cons.itemName || itemId || 'Item';
 
         if (itemId && qty > 0) {
-          const existingIndex = newPlayer.inventory.findIndex(it => it.id === itemId);
-
           if (action === 'ADD') {
-            if (existingIndex >= 0) {
-              newPlayer.inventory[existingIndex] = {
-                ...newPlayer.inventory[existingIndex],
-                quantity: newPlayer.inventory[existingIndex].quantity + qty,
-              };
-            } else {
-              newPlayer.inventory.push({
-                id: itemId,
-                name: itemName,
-                quantity: qty,
-              });
-            }
+            newPlayer.inventory = addItem(newPlayer.inventory, {
+              id: itemId,
+              name: itemName,
+              quantity: qty,
+            });
             newLogs.push(`[INVENTÁRIO]: Obteve ${qty}x ${itemName}.`);
           } else if (action === 'REMOVE') {
-            if (existingIndex >= 0) {
-              const newQty = newPlayer.inventory[existingIndex].quantity - qty;
-              if (newQty <= 0) {
-                newPlayer.inventory.splice(existingIndex, 1);
-              } else {
-                newPlayer.inventory[existingIndex] = {
-                  ...newPlayer.inventory[existingIndex],
-                  quantity: newQty,
-                };
-              }
+            if (hasItem(newPlayer.inventory, itemId, 1)) {
+              newPlayer.inventory = removeItem(newPlayer.inventory, itemId, qty);
               newLogs.push(`[INVENTÁRIO]: Removeu/Usou ${qty}x ${itemName}.`);
             } else {
               newLogs.push(`[INVENTÁRIO]: Não possui "${itemName}" para remover.`);
@@ -166,7 +155,12 @@ export function resolveChoice(
 
       case 'ATTRIBUTE_CHECK': {
         if (cons.attribute && cons.targetValue !== undefined) {
-          const attrBonus = newPlayer.attributes[cons.attribute];
+          const effectiveAttrs = getEffectiveAttributes(
+            newPlayer.attributes,
+            newPlayer.equippedItemIds,
+            itemsRegistry
+          );
+          const attrBonus = effectiveAttrs[cons.attribute];
           const check = rng.rollCheck(attrBonus, cons.targetValue);
 
           const resultText = check.isSuccess ? 'SUCESSO' : 'FALHA';

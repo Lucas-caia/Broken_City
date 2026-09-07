@@ -20,6 +20,7 @@ export interface PlayerData {
   sanity: { current: number; max: number };
   attributes: Attributes;
   inventory: Item[];
+  equippedItemIds: string[]; // Limite de 3 itens equipados simultaneamente
   flags: string[];
 }
 

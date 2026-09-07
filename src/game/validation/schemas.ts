@@ -1,5 +1,32 @@
 import { z } from 'zod';
 import { GameEvent } from '../types/event';
+import { BaseItem } from '../types/item';
+
+export const ItemEffectSchema = z.object({
+  target: z.enum([
+    'HEALTH',
+    'SANITY',
+    'STRENGTH',
+    'DEXTERITY',
+    'CONSTITUTION',
+    'INTELLIGENCE',
+    'WISDOM',
+    'CHARISMA',
+  ]),
+  value: z.number(),
+  description: z.string().optional(),
+});
+
+export const BaseItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  type: z.enum(['CONSUMABLE', 'EQUIPMENT', 'KEY', 'MISC']),
+  effects: z.array(ItemEffectSchema),
+  equippable: z.boolean().optional(),
+});
+
+export const ItemsListSchema = z.array(BaseItemSchema);
 
 export const ConsequenceSchema = z.object({
   type: z.enum(['HEALTH', 'SANITY', 'ITEM', 'ATTRIBUTE_CHECK', 'ATTRIBUTE_CHANGE', 'FLAG']),
@@ -38,6 +65,27 @@ export const EventsListSchema = z.array(GameEventSchema);
 export interface ValidationReport {
   valid: boolean;
   errors: string[];
+}
+
+/**
+ * Valida a integridade do catálogo de itens:
+ * - Proíbe IDs duplicados
+ */
+export function validateItemsCatalog(items: BaseItem[]): ValidationReport {
+  const errors: string[] = [];
+  const itemIds = new Set<string>();
+
+  for (const item of items) {
+    if (itemIds.has(item.id)) {
+      errors.push(`ID de item duplicado encontrado: "${item.id}"`);
+    }
+    itemIds.add(item.id);
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
 }
 
 /**

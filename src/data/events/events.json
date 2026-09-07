@@ -36,10 +36,12 @@
       },
       {
         "id": "CHOICE_04_SUPRIMENTOS",
-        "text": "[ Vasculhar o caixote abandonado (+1 Banana, +1 Força) ]",
+        "text": "[ Vasculhar o caixote de suprimentos (+Banana, +Martelo, +Capa, +Livro) ]",
         "consequences": [
           { "type": "ITEM", "itemAction": "ADD", "itemId": "banana", "itemName": "Banana", "value": 1 },
-          { "type": "ATTRIBUTE_CHANGE", "attribute": "strength", "value": 1 }
+          { "type": "ITEM", "itemAction": "ADD", "itemId": "martelo", "itemName": "Martelo Pesado", "value": 1 },
+          { "type": "ITEM", "itemAction": "ADD", "itemId": "capa_encantada", "itemName": "Capa Encantada", "value": 1 },
+          { "type": "ITEM", "itemAction": "ADD", "itemId": "livro", "itemName": "Livro dos Selos", "value": 1 }
         ],
         "nextEventId": "EVT_CORREDOR_SUPRIMENTOS"
       }
@@ -48,22 +50,12 @@
   {
     "id": "EVT_CORREDOR_SUPRIMENTOS",
     "title": "O Caixote de Suprimentos",
-    "description": "Entre panos rasgados e poeira, você encontra uma Banana amarela e fresca. O aroma doce traz um vigor inexplicável aos seus músculos (+1 Força). Você pode ingeri-la agora ou guardá-la na mochila.",
+    "description": "Entre panos rasgados e chapas de aço, você resgata itens valiosos: uma Banana fresca (que pode ser consumida a qualquer hora na Mochila/Status para curar vida), um Martelo Pesado, uma Capa Encantada e o Livro dos Selos.",
     "imageUrl": "correntes.jpg",
     "choices": [
       {
-        "id": "CHOICE_COMER_BANANA",
-        "text": "[ Comer a Banana agora (+20 Vida, -1 Banana) ]",
-        "requiredItem": "banana",
-        "consequences": [
-          { "type": "HEALTH", "value": 20 },
-          { "type": "ITEM", "itemAction": "REMOVE", "itemId": "banana", "itemName": "Banana", "value": 1 }
-        ],
-        "nextEventId": "EVT_CORREDOR_01"
-      },
-      {
         "id": "CHOICE_VOLTAR_CORREDOR",
-        "text": "[ Guardar na mochila e voltar ao corredor ]",
+        "text": "[ Recolher os itens na mochila e voltar ao corredor ]",
         "consequences": [],
         "nextEventId": "EVT_CORREDOR_01"
       }
@@ -79,7 +71,8 @@
         "id": "CHOICE_FURTIVA_PEGAR_CHAVE",
         "text": "[ Recolher a Chave Enferrujada e avançar ]",
         "consequences": [
-          { "type": "FLAG", "flagId": "CHAVE_ENFERRUJADA" }
+          { "type": "FLAG", "flagId": "CHAVE_ENFERRUJADA" },
+          { "type": "ITEM", "itemAction": "ADD", "itemId": "chave_enferrujada", "itemName": "Chave Enferrujada", "value": 1 }
         ],
         "nextEventId": "EVT_PORTA_BLINDADA"
       },
@@ -111,9 +104,17 @@
   {
     "id": "EVT_SALA_ESCURA",
     "title": "A Câmara Sufocante",
-    "description": "Você tateia as paredes úmidas em total escuridão. O ar é denso e gélido. Suas mãos tocam entalhes na rocha que parecem pulsar levemente sob seus dedos.",
+    "description": "Você tateia as paredes úmidas em total escuridão. O ar é denso e gélido. Suas mãos tocam entalhes na rocha e um pequeno pedestal com um antigo tomo de rituais.",
     "imageUrl": "correntes.jpg",
     "choices": [
+      {
+        "id": "CHOICE_SALA_LIVRO",
+        "text": "[ Pegar o Livro dos Selos do pedestal e prosseguir ]",
+        "consequences": [
+          { "type": "ITEM", "itemAction": "ADD", "itemId": "livro", "itemName": "Livro dos Selos", "value": 1 }
+        ],
+        "nextEventId": "EVT_PORTA_BLINDADA"
+      },
       {
         "id": "CHOICE_SALA_CONCENTRAR",
         "text": "[ Respirar fundo e focar na estabilidade (+5 Sanidade) ]",
@@ -155,6 +156,15 @@
     "description": "Diante de você ergue-se uma pesada porta de contenção blindada com uma tranca maciça. Um visor embaçado deixa entrever uma luz estável e segura do outro lado.",
     "imageUrl": "correntes.jpg",
     "choices": [
+      {
+        "id": "CHOICE_PORTA_LIVRO",
+        "text": "[ Recitar as runas do Livro dos Selos diante da fechadura ]",
+        "requiredItem": "livro",
+        "consequences": [
+          { "type": "SANITY", "value": 15 }
+        ],
+        "nextEventId": "EVT_REFUGIO_ALCANCADO"
+      },
       {
         "id": "CHOICE_PORTA_COM_CHAVE",
         "text": "[ Inserir a Chave Enferrujada no mecanismo trancado ]",
@@ -208,8 +218,18 @@
     "imageUrl": "correntes.jpg",
     "choices": [
       {
+        "id": "CHOICE_MORTE_LIVRO",
+        "text": "[ Clamar pelo selo protetor do Livro dos Selos no chão ]",
+        "requiredItem": "livro",
+        "consequences": [
+          { "type": "HEALTH", "value": 50 },
+          { "type": "SANITY", "value": 20 }
+        ],
+        "nextEventId": "EVT_REFUGIO_ALCANCADO"
+      },
+      {
         "id": "CHOICE_MORTE_ACEITAR",
-        "text": "[ Fechar os olhos ]",
+        "text": "[ Fechar os olhos e sucumbir ]",
         "consequences": [
           { "type": "HEALTH", "value": -100 }
         ],
