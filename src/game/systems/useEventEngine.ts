@@ -10,7 +10,7 @@ export const useEventEngine = () => {
     eventsData[0];
 
   const availableChoices: Choice[] = currentEvent
-    ? getAvailableChoices(currentEvent, state.player.flags)
+    ? getAvailableChoices(currentEvent, state.player.flags, state.player.inventory)
     : [];
 
   return {

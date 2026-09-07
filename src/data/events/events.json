@@ -33,6 +33,39 @@
           { "type": "HEALTH", "value": -15 }
         ],
         "nextEventId": "EVT_ARMADILHA_ATIVA"
+      },
+      {
+        "id": "CHOICE_04_SUPRIMENTOS",
+        "text": "[ Vasculhar o caixote abandonado (+1 Banana, +1 Força) ]",
+        "consequences": [
+          { "type": "ITEM", "itemAction": "ADD", "itemId": "banana", "itemName": "Banana", "value": 1 },
+          { "type": "ATTRIBUTE_CHANGE", "attribute": "strength", "value": 1 }
+        ],
+        "nextEventId": "EVT_CORREDOR_SUPRIMENTOS"
+      }
+    ]
+  },
+  {
+    "id": "EVT_CORREDOR_SUPRIMENTOS",
+    "title": "O Caixote de Suprimentos",
+    "description": "Entre panos rasgados e poeira, você encontra uma Banana amarela e fresca. O aroma doce traz um vigor inexplicável aos seus músculos (+1 Força). Você pode ingeri-la agora ou guardá-la na mochila.",
+    "imageUrl": "correntes.jpg",
+    "choices": [
+      {
+        "id": "CHOICE_COMER_BANANA",
+        "text": "[ Comer a Banana agora (+20 Vida, -1 Banana) ]",
+        "requiredItem": "banana",
+        "consequences": [
+          { "type": "HEALTH", "value": 20 },
+          { "type": "ITEM", "itemAction": "REMOVE", "itemId": "banana", "itemName": "Banana", "value": 1 }
+        ],
+        "nextEventId": "EVT_CORREDOR_01"
+      },
+      {
+        "id": "CHOICE_VOLTAR_CORREDOR",
+        "text": "[ Guardar na mochila e voltar ao corredor ]",
+        "consequences": [],
+        "nextEventId": "EVT_CORREDOR_01"
       }
     ]
   },

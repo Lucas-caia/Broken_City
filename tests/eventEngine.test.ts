@@ -28,6 +28,13 @@ describe('Motor de Eventos (eventEngine)', () => {
           consequences: [],
           nextEventId: 'EVT_02',
         },
+        {
+          id: 'C_ITEM_REQ',
+          text: 'Escolha com Item',
+          requiredItem: 'banana',
+          consequences: [],
+          nextEventId: 'EVT_02',
+        },
       ],
     },
     {
@@ -73,12 +80,19 @@ describe('Motor de Eventos (eventEngine)', () => {
     logHistory: [],
   };
 
-  it('deve filtrar escolhas trancadas por requiredFlag', () => {
-    const choicesSemFlag = getAvailableChoices(dummyEvents[0], []);
-    expect(choicesSemFlag.map(c => c.id)).toEqual(['C_01']);
+  it('deve filtrar escolhas trancadas por requiredFlag e requiredItem', () => {
+    const choicesSemNada = getAvailableChoices(dummyEvents[0], [], []);
+    expect(choicesSemNada.map(c => c.id)).toEqual(['C_01']);
 
-    const choicesComFlag = getAvailableChoices(dummyEvents[0], ['CHAVE_OURO']);
+    const choicesComFlag = getAvailableChoices(dummyEvents[0], ['CHAVE_OURO'], []);
     expect(choicesComFlag.map(c => c.id)).toEqual(['C_01', 'C_02']);
+
+    const choicesComItem = getAvailableChoices(
+      dummyEvents[0],
+      [],
+      [{ id: 'banana', name: 'Banana', quantity: 1 }]
+    );
+    expect(choicesComItem.map(c => c.id)).toEqual(['C_01', 'C_ITEM_REQ']);
   });
 
   it('deve aplicar consequências de HEALTH e transicionar de evento', () => {
@@ -102,6 +116,106 @@ describe('Motor de Eventos (eventEngine)', () => {
     const { nextState } = resolveChoice(baseState, choiceComFlag, eventsMap, rng);
 
     expect(nextState.player.flags).toContain('LANTERNA');
+  });
+
+  it('deve adicionar item (Banana) ao inventário com consequence ITEM (ADD)', () => {
+    const choiceBanana: Choice = {
+      id: 'C_BANANA',
+      text: 'Pegar Banana',
+      consequences: [
+        {
+          type: 'ITEM',
+          itemAction: 'ADD',
+          itemId: 'banana',
+          itemName: 'Banana',
+          value: 1,
+        },
+      ],
+      nextEventId: 'EVT_02',
+    };
+
+    const rng = createRNG(1);
+    const { nextState } = resolveChoice(baseState, choiceBanana, eventsMap, rng);
+
+    expect(nextState.player.inventory).toEqual([
+      { id: 'banana', name: 'Banana', quantity: 1 },
+    ]);
+    expect(nextState.logHistory.some(log => log.includes('1x Banana'))).toBe(true);
+
+    // Adicionar mais uma banana deve acumular a quantidade
+    const { nextState: nextState2 } = resolveChoice(nextState, choiceBanana, eventsMap, rng);
+    expect(nextState2.player.inventory).toEqual([
+      { id: 'banana', name: 'Banana', quantity: 2 },
+    ]);
+  });
+
+  it('deve remover item do inventário com consequence ITEM (REMOVE)', () => {
+    const stateComBanana: GameState = {
+      ...baseState,
+      player: {
+        ...baseState.player,
+        inventory: [{ id: 'banana', name: 'Banana', quantity: 2 }],
+      },
+    };
+
+    const choiceComerBanana: Choice = {
+      id: 'C_COMER_BANANA',
+      text: 'Comer Banana',
+      consequences: [
+        {
+          type: 'ITEM',
+          itemAction: 'REMOVE',
+          itemId: 'banana',
+          itemName: 'Banana',
+          value: 1,
+        },
+      ],
+      nextEventId: 'EVT_02',
+    };
+
+    const rng = createRNG(1);
+    // Remove 1 das 2 bananas
+    const { nextState: stateCom1Banana } = resolveChoice(
+      stateComBanana,
+      choiceComerBanana,
+      eventsMap,
+      rng
+    );
+    expect(stateCom1Banana.player.inventory).toEqual([
+      { id: 'banana', name: 'Banana', quantity: 1 },
+    ]);
+
+    // Remove a última banana (deve esvaziar o inventário)
+    const { nextState: stateSemBanana } = resolveChoice(
+      stateCom1Banana,
+      choiceComerBanana,
+      eventsMap,
+      rng
+    );
+    expect(stateSemBanana.player.inventory).toEqual([]);
+  });
+
+  it('deve alterar atributos do jogador com consequence ATTRIBUTE_CHANGE', () => {
+    const choiceBonusForca: Choice = {
+      id: 'C_FORCA',
+      text: 'Treinar músculos',
+      consequences: [
+        {
+          type: 'ATTRIBUTE_CHANGE',
+          attribute: 'strength',
+          value: 2,
+        },
+      ],
+      nextEventId: 'EVT_02',
+    };
+
+    const rng = createRNG(1);
+    const { nextState } = resolveChoice(baseState, choiceBonusForca, eventsMap, rng);
+
+    expect(nextState.player.attributes.strength).toBe(7); // 5 base + 2
+    expect(
+      nextState.logHistory.some(log => log.includes('STRENGTH alterado (+2)'))
+    ).toBe(true);
   });
 
   it('deve transicionar para GAME_OVER quando HP chegar a zero', () => {
@@ -162,4 +276,3 @@ describe('Motor de Eventos (eventEngine)', () => {
     expect(rollLog).toContain('TESTE DE DEXTERITY');
   });
 });
-

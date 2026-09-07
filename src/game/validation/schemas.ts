@@ -2,9 +2,12 @@ import { z } from 'zod';
 import { GameEvent } from '../types/event';
 
 export const ConsequenceSchema = z.object({
-  type: z.enum(['HEALTH', 'SANITY', 'ITEM', 'ATTRIBUTE_CHECK', 'FLAG']),
+  type: z.enum(['HEALTH', 'SANITY', 'ITEM', 'ATTRIBUTE_CHECK', 'ATTRIBUTE_CHANGE', 'FLAG']),
   value: z.number().optional(),
   flagId: z.string().optional(),
+  itemAction: z.enum(['ADD', 'REMOVE']).optional(),
+  itemId: z.string().optional(),
+  itemName: z.string().optional(),
   attribute: z
     .enum(['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'])
     .optional(),
@@ -17,6 +20,7 @@ export const ChoiceSchema = z.object({
   id: z.string(),
   text: z.string(),
   requiredFlag: z.string().optional(),
+  requiredItem: z.string().optional(),
   consequences: z.array(ConsequenceSchema),
   nextEventId: z.string().nullable().optional(),
 });
@@ -40,6 +44,7 @@ export interface ValidationReport {
  * Valida a integridade referencial do grafo de eventos:
  * - Proíbe IDs duplicados
  * - Garante que todo nextEventId, successEventId e failEventId aponte para um evento existente
+ * - Garante que consequências tenham seus campos obrigatórios
  */
 export function validateEventsGraph(events: GameEvent[]): ValidationReport {
   const errors: string[] = [];
@@ -53,7 +58,7 @@ export function validateEventsGraph(events: GameEvent[]): ValidationReport {
     eventIds.add(event.id);
   }
 
-  // 2. Checar integridade dos ponteiros de navegação
+  // 2. Checar integridade dos ponteiros de navegação e consequências
   for (const event of events) {
     for (const choice of event.choices) {
       if (choice.nextEventId && !eventIds.has(choice.nextEventId)) {
@@ -79,6 +84,18 @@ export function validateEventsGraph(events: GameEvent[]): ValidationReport {
               `Evento "${event.id}" (escolha "${choice.id}") aponta para failEventId inexistente: "${cons.failEventId}"`
             );
           }
+        } else if (cons.type === 'ATTRIBUTE_CHANGE') {
+          if (!cons.attribute || cons.value === undefined) {
+            errors.push(
+              `Evento "${event.id}" (escolha "${choice.id}") possui ATTRIBUTE_CHANGE sem atributo ou value`
+            );
+          }
+        } else if (cons.type === 'ITEM') {
+          if (!cons.itemId) {
+            errors.push(
+              `Evento "${event.id}" (escolha "${choice.id}") possui ITEM sem itemId`
+            );
+          }
         }
       }
     }
@@ -89,4 +106,3 @@ export function validateEventsGraph(events: GameEvent[]): ValidationReport {
     errors,
   };
 }
-

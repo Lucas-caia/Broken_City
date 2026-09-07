@@ -1,5 +1,5 @@
 import { GameEvent, Choice } from '../types/event';
-import { GameState } from '../types/gameState';
+import { GameState, Item } from '../types/gameState';
 import { Mulberry32RNG } from './rng';
 
 export interface ResolutionResult {
@@ -19,17 +19,32 @@ export function createEventsMap(events: GameEvent[]): Map<string, GameEvent> {
 }
 
 /**
- * Filtra escolhas disponíveis considerando os requisitos de flags (portas/chaves)
+ * Filtra escolhas disponíveis considerando os requisitos de flags e itens em inventário
  */
-export function getAvailableChoices(event: GameEvent, playerFlags: string[]): Choice[] {
-  return event.choices.filter(
-    choice => !choice.requiredFlag || playerFlags.includes(choice.requiredFlag)
-  );
+export function getAvailableChoices(
+  event: GameEvent,
+  playerFlags: string[],
+  inventory: Item[] = []
+): Choice[] {
+  return event.choices.filter(choice => {
+    if (choice.requiredFlag && !playerFlags.includes(choice.requiredFlag)) {
+      return false;
+    }
+    if (choice.requiredItem) {
+      const hasItem = inventory.some(
+        it => it.id === choice.requiredItem && it.quantity > 0
+      );
+      if (!hasItem) {
+        return false;
+      }
+    }
+    return true;
+  });
 }
 
 /**
  * Função pura que resolve uma escolha do jogador:
- * - Executa consequências de vida, sanidade e flags
+ * - Executa consequências de vida, sanidade, flags, atributos e itens
  * - Executa rolagens determinísticas de teste de atributos via RNG
  * - Avalia ramificações de sucesso/falha
  * - Transiciona para GAME_OVER em caso de morte física ou colapso de sanidade
@@ -48,7 +63,7 @@ export function resolveChoice(
     sanity: { ...state.player.sanity },
     attributes: { ...state.player.attributes },
     flags: [...state.player.flags],
-    inventory: [...state.player.inventory],
+    inventory: state.player.inventory.map(item => ({ ...item })),
   };
 
   let nextEventId: string | null = choice.nextEventId ?? null;
@@ -89,6 +104,62 @@ export function resolveChoice(
         if (cons.flagId && !newPlayer.flags.includes(cons.flagId)) {
           newPlayer.flags.push(cons.flagId);
           newLogs.push(`[ITEM/CONDIÇÃO]: Obteve "${cons.flagId}".`);
+        }
+        break;
+      }
+
+      case 'ATTRIBUTE_CHANGE': {
+        if (cons.attribute && cons.value !== undefined) {
+          const current = newPlayer.attributes[cons.attribute];
+          const updated = Math.max(0, current + cons.value);
+          newPlayer.attributes[cons.attribute] = updated;
+          const sign = cons.value >= 0 ? '+' : '';
+          newLogs.push(
+            `[ATRIBUTO]: ${cons.attribute.toUpperCase()} alterado (${sign}${cons.value}). Total: ${updated}`
+          );
+        }
+        break;
+      }
+
+      case 'ITEM': {
+        const action = cons.itemAction || 'ADD';
+        const qty = cons.value ?? 1;
+        const itemId = cons.itemId;
+        const itemName = cons.itemName || itemId || 'Item';
+
+        if (itemId && qty > 0) {
+          const existingIndex = newPlayer.inventory.findIndex(it => it.id === itemId);
+
+          if (action === 'ADD') {
+            if (existingIndex >= 0) {
+              newPlayer.inventory[existingIndex] = {
+                ...newPlayer.inventory[existingIndex],
+                quantity: newPlayer.inventory[existingIndex].quantity + qty,
+              };
+            } else {
+              newPlayer.inventory.push({
+                id: itemId,
+                name: itemName,
+                quantity: qty,
+              });
+            }
+            newLogs.push(`[INVENTÁRIO]: Obteve ${qty}x ${itemName}.`);
+          } else if (action === 'REMOVE') {
+            if (existingIndex >= 0) {
+              const newQty = newPlayer.inventory[existingIndex].quantity - qty;
+              if (newQty <= 0) {
+                newPlayer.inventory.splice(existingIndex, 1);
+              } else {
+                newPlayer.inventory[existingIndex] = {
+                  ...newPlayer.inventory[existingIndex],
+                  quantity: newQty,
+                };
+              }
+              newLogs.push(`[INVENTÁRIO]: Removeu/Usou ${qty}x ${itemName}.`);
+            } else {
+              newLogs.push(`[INVENTÁRIO]: Não possui "${itemName}" para remover.`);
+            }
+          }
         }
         break;
       }
@@ -151,4 +222,3 @@ export function resolveChoice(
 
   return { nextState, rollLog };
 }
-
