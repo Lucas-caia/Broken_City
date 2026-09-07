@@ -1,14 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import rawEvents from '../src/data/events/events.json';
 import rawItems from '../src/data/items/items.json';
+import rawEnemies from '../src/data/enemies/enemies.json';
 import {
   EventsListSchema,
   validateEventsGraph,
   ItemsListSchema,
   validateItemsCatalog,
+  EnemiesListSchema,
+  validateEnemiesCatalog,
 } from '../src/game/validation/schemas';
 import { GameEvent } from '../src/game/types/event';
 import { BaseItem } from '../src/game/types/item';
+import { Enemy } from '../src/game/types/enemy';
 
 describe('Validação de Dados e Integridade do Grafo (events.json)', () => {
   it('deve validar a estrutura JSON de eventos contra o schema Zod', () => {
@@ -94,5 +98,36 @@ describe('Validação do Catálogo de Itens (items.json - Issue #9)', () => {
     expect(livro).toBeDefined();
     expect(livro?.type).toBe('KEY');
     expect(livro?.effects).toEqual([]);
+  });
+});
+
+describe('Validação do Catálogo de Inimigos (enemies.json - Issue #11)', () => {
+  it('deve validar a estrutura JSON de inimigos contra o schema Zod', () => {
+    const parseResult = EnemiesListSchema.safeParse(rawEnemies);
+    expect(parseResult.success).toBe(true);
+  });
+
+  it('não deve possuir IDs duplicados no catálogo de inimigos', () => {
+    const enemies: Enemy[] = rawEnemies as Enemy[];
+    const report = validateEnemiesCatalog(enemies);
+
+    if (!report.valid) {
+      console.error('Falhas no catálogo de inimigos:', report.errors);
+    }
+
+    expect(report.valid).toBe(true);
+    expect(report.errors).toHaveLength(0);
+  });
+
+  it('deve conter o primeiro inimigo "A Sombra" com todos os atributos obrigatórios', () => {
+    const enemies: Enemy[] = rawEnemies as Enemy[];
+    const sombra = enemies.find(e => e.id === 'a_sombra');
+
+    expect(sombra).toBeDefined();
+    expect(sombra?.name).toBe('A Sombra');
+    expect(sombra?.health).toBeGreaterThan(0);
+    expect(sombra?.attack).toBeGreaterThanOrEqual(0);
+    expect(sombra?.defense).toBeGreaterThanOrEqual(0);
+    expect(sombra?.description.length).toBeGreaterThan(10);
   });
 });

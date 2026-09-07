@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { GameEvent } from '../types/event';
 import { BaseItem } from '../types/item';
+import { Enemy } from '../types/enemy';
 
 export const ItemEffectSchema = z.object({
   target: z.enum([
@@ -27,6 +28,19 @@ export const BaseItemSchema = z.object({
 });
 
 export const ItemsListSchema = z.array(BaseItemSchema);
+
+export const EnemySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  health: z.number().positive(),
+  maxHealth: z.number().positive().optional(),
+  attack: z.number().nonnegative(),
+  defense: z.number().nonnegative(),
+  description: z.string(),
+  imageUrl: z.string().optional(),
+});
+
+export const EnemiesListSchema = z.array(EnemySchema);
 
 export const ConsequenceSchema = z.object({
   type: z.enum(['HEALTH', 'SANITY', 'ITEM', 'ATTRIBUTE_CHECK', 'ATTRIBUTE_CHANGE', 'FLAG']),
@@ -80,6 +94,27 @@ export function validateItemsCatalog(items: BaseItem[]): ValidationReport {
       errors.push(`ID de item duplicado encontrado: "${item.id}"`);
     }
     itemIds.add(item.id);
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
+/**
+ * Valida a integridade do catálogo de inimigos (Issue #11):
+ * - Proíbe IDs duplicados
+ */
+export function validateEnemiesCatalog(enemies: Enemy[]): ValidationReport {
+  const errors: string[] = [];
+  const enemyIds = new Set<string>();
+
+  for (const enemy of enemies) {
+    if (enemyIds.has(enemy.id)) {
+      errors.push(`ID de inimigo duplicado encontrado: "${enemy.id}"`);
+    }
+    enemyIds.add(enemy.id);
   }
 
   return {

@@ -1,0 +1,13 @@
+[
+  {
+    "id": "a_sombra",
+    "name": "A Sombra",
+    "health": 35,
+    "maxHealth": 35,
+    "attack": 12,
+    "defense": 4,
+    "description": "Uma manifestação incorpórea nascida do horror de Broken City. Ela desliza pelas paredes sem produzir ruídos e ataca drenando a força vital daqueles que cruzam seu caminho.",
+    "imageUrl": "correntes.jpg"
+  }
+]
+
