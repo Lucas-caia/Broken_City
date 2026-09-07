@@ -1,0 +1,125 @@
+[
+  {
+    "id": "banana",
+    "name": "Banana",
+    "description": "Uma fruta amarela e fresca encontrada nos escombros. Ao ser consumida na mochila a qualquer momento, restaura 20 pontos de vida.",
+    "type": "CONSUMABLE",
+    "effects": [
+      {
+        "target": "HEALTH",
+        "value": 20,
+        "description": "Restaura 20 pontos de vida."
+      }
+    ],
+    "equippable": false
+  },
+  {
+    "id": "martelo",
+    "name": "Martelo Pesado",
+    "description": "Uma marreta maciça de ferro forjado. Concede enorme poder de impacto (+2 Força), mas sua inércia e peso prejudicam a agilidade (-1 Destreza).",
+    "type": "EQUIPMENT",
+    "effects": [
+      {
+        "target": "STRENGTH",
+        "value": 2,
+        "description": "+2 Força"
+      },
+      {
+        "target": "DEXTERITY",
+        "value": -1,
+        "description": "-1 Destreza"
+      }
+    ],
+    "equippable": true
+  },
+  {
+    "id": "capa_encantada",
+    "name": "Capa Encantada",
+    "description": "Um manto tecido com fios sombrios. Distorce a luz e confere extrema agilidade e esquiva (+2 Destreza), mas seu enlace arcano drena o vigor (-1 Constituição).",
+    "type": "EQUIPMENT",
+    "effects": [
+      {
+        "target": "DEXTERITY",
+        "value": 2,
+        "description": "+2 Destreza"
+      },
+      {
+        "target": "CONSTITUTION",
+        "value": -1,
+        "description": "-1 Constituição"
+      }
+    ],
+    "equippable": true
+  },
+  {
+    "id": "livro",
+    "name": "Livro dos Selos",
+    "description": "Um tomo antigo repleto de diagramas e palavras de poder. Não fornece bônus de atributos, mas contém segredos para desarmar armadilhas e abrir passagens intransponíveis.",
+    "type": "KEY",
+    "effects": [],
+    "equippable": false
+  },
+  {
+    "id": "chave_enferrujada",
+    "name": "Chave Enferrujada",
+    "description": "Uma chave pesada de ferro forjado. Não possui efeitos diretos, mas destranca portas e passagens seladas.",
+    "type": "KEY",
+    "effects": [],
+    "equippable": false
+  },
+  {
+    "id": "amuleto_osso",
+    "name": "Amuleto de Osso",
+    "description": "Um artefato esculpido em osso polido. Estabiliza a mente contra horrores cósmicos (+15 Sanidade), mas seu peso drena a agilidade (-1 Destreza).",
+    "type": "EQUIPMENT",
+    "effects": [
+      {
+        "target": "SANITY",
+        "value": 15,
+        "description": "+15 Sanidade"
+      },
+      {
+        "target": "DEXTERITY",
+        "value": -1,
+        "description": "-1 Destreza"
+      }
+    ],
+    "equippable": true
+  },
+  {
+    "id": "faca_trincheira",
+    "name": "Faca de Trincheira",
+    "description": "Uma lâmina curta de aço escuro com empunhadura gasta. Aumenta a capacidade ofensiva em combate (+2 Força).",
+    "type": "EQUIPMENT",
+    "effects": [
+      {
+        "target": "STRENGTH",
+        "value": 2,
+        "description": "+2 Força"
+      }
+    ],
+    "equippable": true
+  },
+  {
+    "id": "lanterna_oleo",
+    "name": "Lanterna de Óleo",
+    "description": "Uma lanterna de latão resistente. Espanta as sombras e concede clareza para antecipar perigos (+1 Sabedoria).",
+    "type": "EQUIPMENT",
+    "effects": [
+      {
+        "target": "WISDOM",
+        "value": 1,
+        "description": "+1 Sabedoria"
+      }
+    ],
+    "equippable": true
+  },
+  {
+    "id": "relogio_quebrado",
+    "name": "Relógio de Bolso Quebrado",
+    "description": "Um relógio cujos ponteiros pararam na hora do cataclismo. Item de valor sentimental e chave de interação com NPCs.",
+    "type": "MISC",
+    "effects": [],
+    "equippable": false
+  }
+]

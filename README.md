@@ -1,377 +1,85 @@
 # Broken City
 
-## Visão do projeto
-
-Este projeto será um **roguelike narrativo de survival horror**, inspirado na estrutura de jogos como *Life in Adventure*, mas com universo, sistemas, identidade visual e decisões de design próprios.
-
-A experiência será construída principalmente através de **texto, imagens, escolhas e consequências**, combinando narrativa procedural, gerenciamento de recursos, sobrevivência, exploração, risco e progressão durante cada run.
-
-O desenvolvimento começará no **PC**, com a aplicação preparada desde o início para uma futura adaptação para **Android e iOS**.
+Roguelike narrativo de **survival horror e horror cósmico**, inspirado na estrutura de jogos como *Life in Adventure* e mecânicas táticas de cartas e dados. O jogador explora uma cidade colapsada através de eventos de texto, decisões de alto risco, gerenciamento de sanidade e combate tático.
 
 ---
 
-## Objetivos
+## Status Atual (Milestone 0.1)
 
-- Criar uma experiência de **survival horror narrativo** com alta rejogabilidade.
-- Fazer com que escolhas tenham consequências reais durante a run.
-- Utilizar eventos aleatórios e condicionais para tornar cada partida diferente.
-- Construir um universo próprio inspirado em **horror cósmico, investigação paranormal e sobrevivência**.
-- Priorizar atmosfera, tensão, tomada de decisão e gerenciamento de recursos.
-- Manter a base técnica simples, modular e fácil de evoluir.
-- Desenvolver primeiro para PC sem impedir uma futura versão mobile.
+O núcleo jogável do jogo está implementado, testado e validado:
 
----
-
-## Tecnologias
-
-### Aplicação
-
-- **React**
-- **TypeScript**
-- **Vite**
-- **HTML/CSS**
-
-### Desktop
-
-- **Electron**
-
-### Mobile — futuro
-
-- **Capacitor**
-
-### Dados
-
-- **JSON** para eventos, itens, inimigos, personagens, traits e demais conteúdos do jogo.
-
-### Versionamento
-
-- **Git**
-- **GitHub**
+- **Event Engine Reativo:** Navegação entre eventos, testes de atributos, concessão de itens/flags e ramificações narrativas.
+- **Validação com Zod:** Todos os esquemas de dados (`events.json`, `items.json`, `enemies.json`) são estritamente validados contra integridade referencial.
+- **RNG Determinístico (Mulberry32):** Rolagens de dados e verificações de atributos reprodutíveis via Seed.
+- **Sistema de Inventário:** Armazenamento de itens, limite de até 3 equipamentos ativos simultâneos com bônus/penalidades de atributos, e consumíveis utilizáveis a qualquer momento (ex: Banana).
+- **Combate com Cartas & Dados:**
+  - **Baralho de 40 cartas** gerado dinamicamente pelas armas equipadas (Desarmado = Socos; Martelo = Marteladas; 2 armas = 50%/50%).
+  - **Pontos de Ação por 2d6:** A cada rodada são rolados 2 dados (2 a 12 pontos).
+  - **Mão de até 7 cartas:** Cada carta possui custo de ação e dano escalado por atributos e nível.
+  - **Regra de Exaustão:** Esgotar o baralho de compra resulta em derrota por fadiga.
+- **Conteúdo da Primeira Run:** 9 eventos narrativos encadeados sem loops infinitos, 2 inimigos enfrentáveis (*A Sombra* e o *Carniçal dos Túneis*), 5 itens essenciais e múltiplos desfechos (vitória ou colapso físico/mental).
 
 ---
 
-## Loop principal
+## 🏛️ Arquitetura
+
+O projeto adota arquitetura **modular, desacoplada e orientada a dados (Data-Driven)**:
 
 ```text
-Nova Run
-   ↓
-Criar / gerar personagem
-   ↓
-Iniciar cenário
-   ↓
-Receber evento
-   ↓
-Analisar situação e recursos
-   ↓
-Escolher ação
-   ↓
-Resolver testes e consequências
-   ↓
-Atualizar estado da run
-   ↓
-Próximo evento
-   ↓
-...
-   ↓
-Sobreviver, alcançar um final ou morrer
+src/
+├── data/              # Conteúdo do jogo em JSON puro (Data-Driven)
+│   ├── events/        # Grafo narrativo de eventos e escolhas
+│   ├── items/         # Catálogo de consumíveis, equipamentos e chaves
+│   └── enemies/       # Definições de atributos e descrição de inimigos
+│
+├── game/              # Lógica pura de regras de negócio (sem dependência de UI)
+│   ├── core/          # GameState, Event Engine e PRNG Mulberry32
+│   ├── systems/       # Inventário, Combate por Cartas e Inimigos
+│   ├── types/         # Interfaces e tipagem TypeScript
+│   └── validation/    # Schemas Zod e validadores de integridade
+│
+├── ui/                # Interface visual em React + CSS Terminal Retro
+│   ├── screens/       # App (roteamento), StatusScreen, CombatScreen
+│   └── utils/         # Resolvers de assets e imagens dinâmicas
+│
+├── assets/images/     # Ilustrações e texturas do jogo
+├── styles/            # Estilos globais retro terminal
+└── electron/          # Setup da aplicação desktop
 ```
 
-A morte encerra a run, reforçando a estrutura de **roguelike**.
+> **Princípio Fundamental:** As regras do jogo residem no código TypeScript (`src/game/`); o conteúdo (eventos, encontros, diálogos, itens) é definido externamente em JSON (`src/data/`).
 
 ---
 
-## Funcionalidades planejadas
+## 🛠️ Como Rodar o Código
 
-### Gameplay
+### Pré-requisitos
+- [Node.js](https://nodejs.org/) versão 18 ou superior
+- Gerenciador de pacotes `npm`
 
-- Eventos narrativos aleatórios.
-- Escolhas com consequências.
-- Eventos condicionais e encadeados.
-- Sistema de atributos.
-- Saúde física.
-- Sistema de estabilidade mental/sanidade.
-- Inventário.
-- Itens e equipamentos.
-- Traits e características do personagem.
-- Gerenciamento de recursos.
-- Testes de habilidade.
-- Combate narrativo.
-- Situações de risco e sobrevivência.
-- Diferentes caminhos e finais.
-- Permadeath.
-- Seeds para geração e reprodução de runs.
-
-### Progressão
-
-- Evolução do personagem durante cada run.
-- Builds diferentes de acordo com atributos, equipamentos, traits e decisões.
-- Descoberta de novos eventos e caminhos.
-- Meta-progressão poderá ser estudada futuramente, mas não faz parte do núcleo inicial.
-
-### Sistema
-
-- Save local.
-- Configurações.
-- Música e efeitos sonoros.
-- Interface responsiva.
-- Suporte a teclado e mouse.
-- Preparação da interface para touchscreen no futuro.
-
----
-
-## Arquitetura
-
-O projeto seguirá uma abordagem **modular e data-driven**.
-
-```text
-Application
-│
-├── UI
-│
-├── Game Core
-│   ├── Game State
-│   ├── Event Engine
-│   ├── RNG
-│   ├── Player
-│   ├── Inventory
-│   ├── Survival
-│   ├── Combat
-│   └── Save System
-│
-└── Game Data
-    ├── Events
-    ├── Items
-    ├── Enemies
-    ├── Traits
-    └── Characters
+### Instalação
+Clone o repositório e instale as dependências:
+```bash
+git clone https://github.com/Lucas-caia/Broken_City.git
+cd Broken_City
+npm install
 ```
 
-O **código** será responsável pelas regras e sistemas.
+### Comandos Disponíveis
 
-Os **dados** serão responsáveis pelo conteúdo do jogo.
-
-Exemplo:
-
-```text
-Event Engine
-      ↓
-Carrega evento
-      ↓
-Valida condições
-      ↓
-Apresenta texto + imagem + escolhas
-      ↓
-Jogador escolhe
-      ↓
-Resolve testes e consequências
-      ↓
-Atualiza Game State
-      ↓
-Seleciona próximo evento
-```
-
-Essa separação permitirá criar novos eventos e conteúdos sem alterar constantemente o núcleo do jogo.
+| Comando | Descrição |
+|---|---|
+| `npm run dev` | Inicia o servidor Vite de desenvolvimento (Web + Electron) |
+| `npm test` | Executa a suíte completa de testes automatizados com **Vitest** |
+| `npm run build` | Compila os tipos TypeScript, gera o bundle Vite e empacota para Desktop |
+| `npm run preview` | Pré-visualiza a build de produção localmente |
 
 ---
 
-## Estrutura inicial de pastas
-
-```text
-roguelike-survival-horror/
-│
-├── electron/
-│   └── .gitkeep
-│
-├── src/
-│   ├── ui/
-│   │   ├── components/
-│   │   │   └── .gitkeep
-│   │   └── screens/
-│   │       └── .gitkeep
-│   │
-│   ├── game/
-│   │   ├── core/
-│   │   │   └── .gitkeep
-│   │   ├── systems/
-│   │   │   └── .gitkeep
-│   │   └── types/
-│   │       └── .gitkeep
-│   │
-│   ├── data/
-│   │   ├── events/
-│   │   ├── items/
-│   │   ├── enemies/
-│   │   ├── traits/
-│   │   └── characters/
-│   │
-│   ├── assets/
-│   │   ├── images/
-│   │   ├── audio/
-│   │   └── fonts/
-│   │
-│   └── styles/
-│
-├── tests/
-│   └── .gitkeep
-│
-├── .gitignore
-└── README.md
-```
-
-### `src/ui`
-
-Componentes visuais e telas da aplicação.
-
-A UI não deverá concentrar regras de gameplay.
-
-### `src/game/core`
-
-Elementos centrais da execução de uma run, como estado global, RNG e Event Engine.
-
-### `src/game/systems`
-
-Sistemas independentes de gameplay, como inventário, sobrevivência, combate, atributos e save.
-
-### `src/game/types`
-
-Interfaces e tipos TypeScript compartilhados pelos sistemas e dados.
-
-### `src/data`
-
-Conteúdo data-driven do jogo.
-
-Eventos, itens, personagens e outros conteúdos deverão ficar separados das regras responsáveis por interpretá-los.
-
-### `src/assets`
-
-Imagens, áudio, fontes e outros recursos visuais ou sonoros.
-
-### `electron`
-
-Configurações e código específico da versão desktop.
-
-### `tests`
-
-Testes automatizados dos sistemas e validações de dados.
-
----
-
-## Princípios de desenvolvimento
-
-### Data-driven
-
-Sempre que possível, adicionar conteúdo através de dados em vez de criar regras específicas dentro do código.
-
-### Modularidade
-
-Cada sistema deve possuir uma responsabilidade clara.
-
-### Simplicidade
-
-Não adicionar infraestrutura sem necessidade real.
-
-Inicialmente o projeto não precisa de:
-
-- backend;
-- banco de dados externo;
-- microserviços;
-- autenticação;
-- conexão obrigatória com a internet.
-
-### Offline First
-
-A experiência principal deverá funcionar completamente offline.
-
-### Survival Horror
-
-Recursos devem importar.
-
-Decisões deverão envolver risco, perda, incerteza e sobrevivência, não apenas selecionar diferentes diálogos.
-
-### Consequências
-
-Escolhas anteriores poderão alterar eventos futuros, recursos, atributos, relacionamentos, condições e finais.
-
-### Rejogabilidade
-
-Runs diferentes deverão produzir combinações diferentes de eventos, oportunidades e ameaças.
-
-### Responsividade
-
-A UI deverá evitar dependência de resoluções fixas para facilitar a futura adaptação para dispositivos móveis.
-
-### Reprodutibilidade
-
-O RNG deverá trabalhar com seeds sempre que possível, permitindo reproduzir bugs e cenários específicos.
-
-### Conteúdo validado
-
-Os arquivos de dados deverão possuir estruturas padronizadas.
-
-No futuro, schemas e validações automáticas deverão impedir que dados inválidos sejam carregados pelo jogo.
-
-### Universo próprio
-
-O projeto terá suas próprias:
-
-- criaturas;
-- entidades;
-- personagens;
-- organizações;
-- terminologias;
-- locais;
-- eventos;
-- mitologia.
-
-A inspiração será o **horror cósmico e paranormal**, sem depender de uma franquia existente.
-
----
-
-## Prioridades de design
-
-```text
-Sobrevivência > power fantasy
-
-Atmosfera > gráficos complexos
-
-Escolhas significativas > quantidade de escolhas
-
-Consequências > caminhos puramente cosméticos
-
-Rejogabilidade > campanha linear
-
-Conteúdo data-driven > lógica hardcoded
-
-Arquitetura simples > complexidade prematura
-
-Universo próprio > dependência de franquias existentes
-```
-
----
-
-## Escopo da primeira versão
-
-A primeira versão não precisa representar o jogo completo.
-
-Ela deverá provar que o núcleo funciona:
-
-1. iniciar uma run;
-2. criar ou gerar um personagem;
-3. carregar eventos a partir de dados;
-4. apresentar texto, imagem e escolhas;
-5. verificar requisitos de escolhas;
-6. aplicar consequências;
-7. alterar atributos e recursos;
-8. selecionar o próximo evento;
-9. encerrar a run por morte ou final;
-10. permitir iniciar uma nova run.
-
-Somente depois desse ciclo estar sólido deverão ser adicionados sistemas mais complexos.
-
----
-
-## Status
-
-**Fase atual:** planejamento e preparação da estrutura inicial do projeto.
-
-Próximo objetivo: implementar o primeiro **vertical slice**, contendo uma run curta com alguns eventos conectados e o Game State funcional.
+## 🔮 Roadmap & Próximos Passos
+
+- [ ] **Expansão Narrativa (Milestone 0.2):** Criação de novos setores de Broken City, ramificações de eventos e NPCs interativos.
+- [ ] **Novas Cartas & Efeitos de Combate:** Adição de cartas de defesa (bloqueio), buffs, debuffs e habilidades especiais.
+- [ ] **Efeitos Sonoros e Trilha Sonora:** Áudio ambiente de suspense e feedback tátil em rolagens e golpes.
+- [ ] **Meta-Progressão:** Diário de expedições, desbloqueio de novas armas e registros de sobreviventes.
+- [ ] **Adaptação Mobile:** Integração com Capacitor para builds nativas em Android e iOS.

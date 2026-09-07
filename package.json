@@ -10,7 +10,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "build": {
     "appId": "com.brokencity.app",
@@ -22,9 +23,15 @@
       "dist",
       "dist-electron"
     ],
-    "win": { "target": "nsis" },
-    "mac": { "target": "dmg" },
-    "linux": { "target": "AppImage" }
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   },
   "repository": {
     "type": "git",
@@ -39,7 +46,8 @@
   "homepage": "https://github.com/Lucas-caia/Broken_City#readme",
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
@@ -50,6 +58,7 @@
     "typescript": "^5.2.2",
     "vite": "^5.0.0",
     "vite-plugin-electron": "^0.28.0",
-    "vite-plugin-electron-renderer": "^0.14.5"
+    "vite-plugin-electron-renderer": "^0.14.5",
+    "vitest": "^1.6.1"
   }
 }

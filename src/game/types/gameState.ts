@@ -1,12 +1,14 @@
-export type RunState = 'IDLE' | 'PLAYING' | 'EVENT' | 'GAME_OVER';
+import { CombatState } from './combat';
+
+export type RunState = 'IDLE' | 'PLAYING' | 'EVENT' | 'COMBAT' | 'GAME_OVER' | 'VICTORY';
 
 export interface Attributes {
   strength: number;
   dexterity: number;
-  constitution: number; 
+  constitution: number;
   intelligence: number;
-  wisdom: number;      
-  charisma: number;      
+  wisdom: number;
+  charisma: number;
 }
 
 export interface Item {
@@ -16,15 +18,20 @@ export interface Item {
 }
 
 export interface PlayerData {
+  level: number;
   health: { current: number; max: number };
   sanity: { current: number; max: number };
   attributes: Attributes;
   inventory: Item[];
+  equippedItemIds: string[]; // Limite de 3 itens equipados simultaneamente
   flags: string[];
 }
 
 export interface GameState {
   runState: RunState;
+  seed: number;
   player: PlayerData;
   currentEventId: string | null;
+  combat?: CombatState | null;
+  logHistory: string[];
 }

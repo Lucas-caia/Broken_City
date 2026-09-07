@@ -1,0 +1,22 @@
+[
+  {
+    "id": "a_sombra",
+    "name": "A Sombra",
+    "health": 35,
+    "maxHealth": 35,
+    "attack": 12,
+    "defense": 4,
+    "description": "Uma manifestação incorpórea nascida do horror de Broken City. Ela desliza pelas paredes sem produzir ruídos e ataca drenando a força vital daqueles que cruzam seu caminho.",
+    "imageUrl": "correntes.jpg"
+  },
+  {
+    "id": "carnical_dos_tuneis",
+    "name": "Carniçal dos Túneis",
+    "health": 30,
+    "maxHealth": 30,
+    "attack": 11,
+    "defense": 3,
+    "description": "Uma aberração faminta que rasteja pela tubulação oxidada de Broken City. Seus membros alongados terminam em garras afiadas de metal fundido.",
+    "imageUrl": "correntes.jpg"
+  }
+]
