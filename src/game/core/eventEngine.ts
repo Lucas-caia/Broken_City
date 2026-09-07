@@ -167,7 +167,7 @@ export function resolveChoice(
               enemy,
               itemsRegistry || new Map(),
               rng,
-              cons.successEventId,
+              cons.successEventId || choice.nextEventId || undefined,
               cons.failEventId
             );
             newLogs.push(`[INÍCIO DE COMBATE]: Confronto contra "${enemy.name}" iniciado!`);

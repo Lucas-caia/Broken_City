@@ -12,7 +12,7 @@
           {
             "type": "ATTRIBUTE_CHECK",
             "attribute": "dexterity",
-            "targetValue": 6,
+            "targetValue": 12,
             "successEventId": "EVT_CORREDOR_RESULTADO_FURTIVIDADE",
             "failEventId": "EVT_CORREDOR_FALHA_FURTIVIDADE"
           }
@@ -50,14 +50,14 @@
   {
     "id": "EVT_CORREDOR_SUPRIMENTOS",
     "title": "O Caixote de Suprimentos",
-    "description": "Entre panos rasgados e chapas de aço, você resgata itens valiosos: uma Banana fresca (que pode ser consumida a qualquer hora na Mochila/Status para curar vida), um Martelo Pesado, uma Capa Encantada e o Livro dos Selos.",
+    "description": "Entre panos rasgados e chapas de aço, você resgata itens valiosos: uma Banana fresca, um Martelo Pesado, uma Capa Encantada e o Livro dos Selos. Estrondos atrás de você bloqueiam a passagem anterior, restando apenas avançar em direção ao portão.",
     "imageUrl": "correntes.jpg",
     "choices": [
       {
-        "id": "CHOICE_VOLTAR_CORREDOR",
-        "text": "[ Recolher os itens na mochila e voltar ao corredor ]",
+        "id": "CHOICE_AVANCAR_PORTAO",
+        "text": "[ Guardar os suprimentos e avançar até o Portão de Ferro ]",
         "consequences": [],
-        "nextEventId": "EVT_CORREDOR_01"
+        "nextEventId": "EVT_PORTA_BLINDADA"
       }
     ]
   },
@@ -87,15 +87,23 @@
   {
     "id": "EVT_CORREDOR_FALHA_FURTIVIDADE",
     "title": "O Eco Fatal",
-    "description": "Um elo escorrega dos seus dedos suados e bate com força no piso de metal. O estrondo ecoa pelo labirinto. Um gemido gutural responde na penumbra, abalando sua coragem.",
+    "description": "Um elo escorrega dos seus dedos suados e bate com força no piso de metal. O estrondo ecoa pelo labirinto. Das tubulações de vapor surge o faminto Carniçal dos Túneis, rosnando e bloqueando o caminho!",
     "imageUrl": "correntes.jpg",
     "choices": [
       {
-        "id": "CHOICE_FALHA_CORRER",
-        "text": "[ Correr desesperadamente em direção à saída adiante ]",
+        "id": "CHOICE_FALHA_COMBATE_CARNICAL",
+        "text": "[ Empunhar armas e combater o Carniçal dos Túneis (Combate) ]",
         "consequences": [
-          { "type": "SANITY", "value": -15 },
-          { "type": "HEALTH", "value": -10 }
+          { "type": "START_COMBAT", "enemyId": "carnical_dos_tuneis" }
+        ],
+        "nextEventId": "EVT_PORTA_BLINDADA"
+      },
+      {
+        "id": "CHOICE_FALHA_CORRER",
+        "text": "[ Esquivar das garras e correr desesperadamente (-15 Vida, -10 Sanidade) ]",
+        "consequences": [
+          { "type": "SANITY", "value": -10 },
+          { "type": "HEALTH", "value": -15 }
         ],
         "nextEventId": "EVT_PORTA_BLINDADA"
       }

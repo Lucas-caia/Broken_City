@@ -130,4 +130,74 @@ describe('Validação do Catálogo de Inimigos (enemies.json - Issue #11)', () =
     expect(sombra?.defense).toBeGreaterThanOrEqual(0);
     expect(sombra?.description.length).toBeGreaterThan(10);
   });
+
+  it('deve conter o segundo inimigo "Carniçal dos Túneis" (Issue #13)', () => {
+    const enemies: Enemy[] = rawEnemies as Enemy[];
+    const carnical = enemies.find(e => e.id === 'carnical_dos_tuneis');
+
+    expect(carnical).toBeDefined();
+    expect(carnical?.name).toBe('Carniçal dos Túneis');
+    expect(carnical?.health).toBeGreaterThan(0);
+    expect(carnical?.attack).toBeGreaterThanOrEqual(0);
+    expect(carnical?.defense).toBeGreaterThanOrEqual(0);
+  });
 });
+
+describe('Conteúdo de Teste da Primeira Run (Issue #13 - Milestone 0.1)', () => {
+  it('deve conter entre 5 e 10 eventos na base de dados', () => {
+    const events: GameEvent[] = rawEvents as GameEvent[];
+    expect(events.length).toBeGreaterThanOrEqual(5);
+    expect(events.length).toBeLessThanOrEqual(10);
+  });
+
+  it('deve possuir exatamente pelo menos 2 inimigos configurados', () => {
+    const enemies: Enemy[] = rawEnemies as Enemy[];
+    expect(enemies.length).toBeGreaterThanOrEqual(2);
+    expect(enemies.some(e => e.id === 'a_sombra')).toBe(true);
+    expect(enemies.some(e => e.id === 'carnical_dos_tuneis')).toBe(true);
+  });
+
+  it('deve possuir pelo menos 5 itens no catálogo', () => {
+    const items: BaseItem[] = rawItems as BaseItem[];
+    expect(items.length).toBeGreaterThanOrEqual(5);
+    const requiredItemIds = ['banana', 'martelo', 'capa_encantada', 'livro', 'chave_enferrujada'];
+    for (const id of requiredItemIds) {
+      expect(items.some(i => i.id === id)).toBe(true);
+    }
+  });
+
+  it('não deve possuir loops que façam o jogador voltar ao corredor inicial após coletar suprimentos', () => {
+    const events: GameEvent[] = rawEvents as GameEvent[];
+    const suprimentos = events.find(e => e.id === 'EVT_CORREDOR_SUPRIMENTOS');
+    expect(suprimentos).toBeDefined();
+
+    // Nenhuma escolha deve apontar de volta para EVT_CORREDOR_01
+    const voltaParaInicio = suprimentos?.choices.some(c => c.nextEventId === 'EVT_CORREDOR_01');
+    expect(voltaParaInicio).toBe(false);
+  });
+
+  it('deve integrar ambos os inimigos em escolhas narrativas de combate', () => {
+    const events: GameEvent[] = rawEvents as GameEvent[];
+    const allCombatConsequences = events.flatMap(e =>
+      e.choices.flatMap(c => c.consequences.filter(cons => cons.type === 'START_COMBAT'))
+    );
+
+    const enemyIdsInCombat = allCombatConsequences.map(c => c.enemyId);
+    expect(enemyIdsInCombat).toContain('a_sombra');
+    expect(enemyIdsInCombat).toContain('carnical_dos_tuneis');
+  });
+
+  it('deve conter pelo menos uma possibilidade clara de morte no fluxo', () => {
+    const events: GameEvent[] = rawEvents as GameEvent[];
+    // Evento de morte explícita ou escolhas com redução fatal
+    const morteEvento = events.find(e => e.id === 'EVT_MORTE_EXAUSTAO');
+    expect(morteEvento).toBeDefined();
+
+    const escolhaSucumbir = morteEvento?.choices.find(c =>
+      c.consequences.some(cons => cons.type === 'HEALTH' && (cons.value ?? 0) <= -50)
+    );
+    expect(escolhaSucumbir).toBeDefined();
+    expect(escolhaSucumbir?.nextEventId).toBeNull();
+  });
+});
+
