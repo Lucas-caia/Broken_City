@@ -18,6 +18,7 @@ O núcleo jogável do jogo está implementado, testado e validado:
   - **Mão de até 7 cartas:** Cada carta possui custo de ação e dano escalado por atributos e nível.
   - **Regra de Exaustão:** Esgotar o baralho de compra resulta em derrota por fadiga.
 - **Conteúdo da Primeira Run:** 9 eventos narrativos encadeados sem loops infinitos, 2 inimigos enfrentáveis (*A Sombra* e o *Carniçal dos Túneis*), 5 itens essenciais e múltiplos desfechos (vitória ou colapso físico/mental).
+- **Tela Inicial & Seleção de Personagens:** Menu inicial retrô com versão (`v0.1`), opções de *Novo Jogo*, *Continuar* (com verificação inteligente de save), *Configurações* e *Sair*. Seleção escalável de sobreviventes a partir de dados (Arthur Vance, Dra. Evelyn Reed, Silas Cole).
 
 ---
 
@@ -28,6 +29,7 @@ O projeto adota arquitetura **modular, desacoplada e orientada a dados (Data-Dri
 ```text
 src/
 ├── data/              # Conteúdo do jogo em JSON puro (Data-Driven)
+│   ├── characters/    # Definições de sobreviventes e atributos iniciais
 │   ├── events/        # Grafo narrativo de eventos e escolhas
 │   ├── items/         # Catálogo de consumíveis, equipamentos e chaves
 │   └── enemies/       # Definições de atributos e descrição de inimigos
@@ -39,7 +41,7 @@ src/
 │   └── validation/    # Schemas Zod e validadores de integridade
 │
 ├── ui/                # Interface visual em React + CSS Terminal Retro
-│   ├── screens/       # App (roteamento), StatusScreen, CombatScreen
+│   ├── screens/       # App, MainMenuScreen, CharacterSelectScreen, SettingsScreen, CombatScreen, StatusScreen
 │   └── utils/         # Resolvers de assets e imagens dinâmicas
 │
 ├── assets/images/     # Ilustrações e texturas do jogo

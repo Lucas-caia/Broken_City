@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { GameEvent } from '../types/event';
 import { BaseItem } from '../types/item';
 import { Enemy } from '../types/enemy';
+import { CharacterDefinition } from '../types/character';
 
 export const ItemEffectSchema = z.object({
   target: z.enum([
@@ -41,6 +42,43 @@ export const EnemySchema = z.object({
 });
 
 export const EnemiesListSchema = z.array(EnemySchema);
+
+export const AttributesSchema = z.object({
+  strength: z.number().nonnegative(),
+  dexterity: z.number().nonnegative(),
+  constitution: z.number().nonnegative(),
+  intelligence: z.number().nonnegative(),
+  wisdom: z.number().nonnegative(),
+  charisma: z.number().nonnegative(),
+});
+
+export const StartingItemSchema = z.object({
+  itemId: z.string(),
+  name: z.string().optional(),
+  quantity: z.number().positive(),
+});
+
+export const CharacterSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  title: z.string(),
+  description: z.string(),
+  portraitUrl: z.string().optional(),
+  health: z.object({
+    current: z.number().positive(),
+    max: z.number().positive(),
+  }),
+  sanity: z.object({
+    current: z.number().positive(),
+    max: z.number().positive(),
+  }),
+  attributes: AttributesSchema,
+  startingInventory: z.array(StartingItemSchema).optional(),
+  startingEquippedItemIds: z.array(z.string()).optional(),
+  traits: z.array(z.string()).optional(),
+});
+
+export const CharactersListSchema = z.array(CharacterSchema);
 
 export const ConsequenceSchema = z.object({
   type: z.enum([
@@ -124,6 +162,35 @@ export function validateEnemiesCatalog(enemies: Enemy[]): ValidationReport {
       errors.push(`ID de inimigo duplicado encontrado: "${enemy.id}"`);
     }
     enemyIds.add(enemy.id);
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
+/**
+ * Valida a integridade do catálogo de personagens (Issue #16):
+ * - Proíbe IDs duplicados
+ * - Garante valores positivos de vida e sanidade
+ */
+export function validateCharactersCatalog(characters: CharacterDefinition[]): ValidationReport {
+  const errors: string[] = [];
+  const charIds = new Set<string>();
+
+  for (const char of characters) {
+    if (charIds.has(char.id)) {
+      errors.push(`ID de personagem duplicado encontrado: "${char.id}"`);
+    }
+    charIds.add(char.id);
+
+    if (char.health.current <= 0 || char.health.max <= 0) {
+      errors.push(`Personagem "${char.id}" possui vida inválida (deve ser > 0)`);
+    }
+    if (char.sanity.current <= 0 || char.sanity.max <= 0) {
+      errors.push(`Personagem "${char.id}" possui sanidade inválida (deve ser > 0)`);
+    }
   }
 
   return {
