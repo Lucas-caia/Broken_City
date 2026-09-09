@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CharacterDefinition } from '../../game/types/character';
 import { getEventImageUrl } from '../utils/assetHelper';
+import { useAudio } from '../context/AudioContext';
 import '../../styles/global.css';
 
 interface CharacterSelectScreenProps {
@@ -15,6 +16,7 @@ const CharacterSelectScreen: React.FC<CharacterSelectScreenProps> = ({
   onBack,
 }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const { playHover, playClick } = useAudio();
 
   const selectedChar = characters[selectedIndex] || characters[0];
   const portraitUrl = getEventImageUrl(selectedChar?.portraitUrl);
@@ -24,7 +26,14 @@ const CharacterSelectScreen: React.FC<CharacterSelectScreenProps> = ({
       <div className="game-container">
         <div className="narrative-section" style={{ justifyContent: 'center' }}>
           <h2>NENHUM PERSONAGEM DISPONÍVEL</h2>
-          <button className="choice-btn" onClick={onBack}>
+          <button
+            className="choice-btn"
+            onMouseEnter={playHover}
+            onClick={() => {
+              playClick();
+              onBack();
+            }}
+          >
             [ VOLTAR ]
           </button>
         </div>
@@ -36,7 +45,14 @@ const CharacterSelectScreen: React.FC<CharacterSelectScreenProps> = ({
     <div className="game-container character-select-container">
       <header className="hud">
         <span>SELEÇÃO DE SOBREVIVENTE</span>
-        <button className="hud-btn" onClick={onBack}>
+        <button
+          className="hud-btn"
+          onMouseEnter={playHover}
+          onClick={() => {
+            playClick();
+            onBack();
+          }}
+        >
           [ VOLTAR AO MENU ]
         </button>
       </header>
@@ -52,7 +68,11 @@ const CharacterSelectScreen: React.FC<CharacterSelectScreenProps> = ({
                 <div
                   key={char.id}
                   className={`char-list-card ${isSelected ? 'selected' : ''}`}
-                  onClick={() => setSelectedIndex(index)}
+                  onMouseEnter={playHover}
+                  onClick={() => {
+                    playClick();
+                    setSelectedIndex(index);
+                  }}
                 >
                   <div className="char-list-card-name">
                     {isSelected ? '▶ ' : '  '}{char.name}
@@ -161,7 +181,11 @@ const CharacterSelectScreen: React.FC<CharacterSelectScreenProps> = ({
           <div className="char-confirm-footer">
             <button
               className="choice-btn char-start-btn"
-              onClick={() => onSelectCharacter(selectedChar)}
+              onMouseEnter={playHover}
+              onClick={() => {
+                playClick();
+                onSelectCharacter(selectedChar);
+              }}
             >
               [ INICIAR JORNADA COM {selectedChar.name.toUpperCase()} ]
             </button>

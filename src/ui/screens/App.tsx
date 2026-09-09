@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGameState } from '../../game/core/GameStateContext';
 import { useEventEngine } from '../../game/systems/useEventEngine';
+import { useAudio } from '../context/AudioContext';
 import StatusScreen from './StatusScreen';
 import CombatScreen from './CombatScreen';
 import MainMenuScreen from './MainMenuScreen';
@@ -21,9 +22,30 @@ const App: React.FC = () => {
     restartRun,
   } = useGameState();
 
+  const {
+    playHover,
+    playClick,
+    playVictory,
+    playGameOver,
+    playBGM,
+  } = useAudio();
+
   const { currentEvent, availableChoices, makeChoice } = useEventEngine();
   const [screen, setScreen] = useState<AppScreen>('MAIN_MENU');
   const [showStatus, setShowStatus] = useState(false);
+
+  // Efeitos sonoros e música de fundo conforme o estado do jogo
+  useEffect(() => {
+    if (screen === 'GAME') {
+      if (state.runState === 'EVENT') {
+        playBGM('exploration');
+      } else if (state.runState === 'VICTORY') {
+        playVictory();
+      } else if (state.runState === 'GAME_OVER') {
+        playGameOver();
+      }
+    }
+  }, [screen, state.runState, playBGM, playVictory, playGameOver]);
 
   // 1. Tela Inicial / Menu Principal
   if (screen === 'MAIN_MENU') {
@@ -84,7 +106,14 @@ const App: React.FC = () => {
           <span style={{ color: isVictory ? '#4caf50' : '#f44336' }}>
             {isVictory ? 'SOBREVIVÊNCIA' : 'RUN ENCERRADA'}
           </span>
-          <button className="hud-btn" onClick={() => setScreen('MAIN_MENU')}>
+          <button
+            className="hud-btn"
+            onMouseEnter={playHover}
+            onClick={() => {
+              playClick();
+              setScreen('MAIN_MENU');
+            }}
+          >
             Menu
           </button>
         </header>
@@ -125,16 +154,31 @@ const App: React.FC = () => {
           <div className="choices-container">
             <button
               className="choice-btn"
-              onClick={() => setScreen('CHARACTER_SELECT')}
+              onMouseEnter={playHover}
+              onClick={() => {
+                playClick();
+                setScreen('CHARACTER_SELECT');
+              }}
             >
               [ SELECIONAR NOVO PERSONAGEM ]
             </button>
-            <button className="choice-btn" onClick={() => restartRun()}>
+            <button
+              className="choice-btn"
+              onMouseEnter={playHover}
+              onClick={() => {
+                playClick();
+                restartRun();
+              }}
+            >
               [ REPETIR RUN (MESMO PERSONAGEM) ]
             </button>
             <button
               className="choice-btn"
-              onClick={() => setScreen('MAIN_MENU')}
+              onMouseEnter={playHover}
+              onClick={() => {
+                playClick();
+                setScreen('MAIN_MENU');
+              }}
             >
               [ MENU PRINCIPAL ]
             </button>
@@ -157,13 +201,21 @@ const App: React.FC = () => {
         <div style={{ display: 'flex', gap: '10px' }}>
           <button
             className="hud-btn"
-            onClick={() => setShowStatus(!showStatus)}
+            onMouseEnter={playHover}
+            onClick={() => {
+              playClick();
+              setShowStatus(!showStatus);
+            }}
           >
             {showStatus ? 'Voltar' : 'Status'}
           </button>
           <button
             className="hud-btn"
-            onClick={() => setScreen('MAIN_MENU')}
+            onMouseEnter={playHover}
+            onClick={() => {
+              playClick();
+              setScreen('MAIN_MENU');
+            }}
             title="Voltar ao Menu Principal (progresso é salvo automaticamente)"
           >
             Menu
@@ -217,7 +269,11 @@ const App: React.FC = () => {
                 <button
                   key={choice.id}
                   className="choice-btn"
-                  onClick={() => makeChoice(choice)}
+                  onMouseEnter={playHover}
+                  onClick={() => {
+                    playClick();
+                    makeChoice(choice);
+                  }}
                 >
                   {choice.text}
                 </button>

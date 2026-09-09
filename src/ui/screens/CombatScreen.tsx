@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useGameState } from '../../game/core/GameStateContext';
+import { useAudio } from '../context/AudioContext';
 import { getEventImageUrl } from '../utils/assetHelper';
 import '../../styles/global.css';
 
@@ -7,7 +8,12 @@ const DICE_ICONS = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 
 const CombatScreen: React.FC = () => {
   const { state, playCombatCard, endCombatTurn } = useGameState();
+  const { playHover, playCardPlay, playDiceRoll, playDamage, playBGM } = useAudio();
   const combat = state.combat;
+
+  useEffect(() => {
+    playBGM('combat');
+  }, [playBGM]);
 
   if (!combat) {
     return (
@@ -102,7 +108,13 @@ const CombatScreen: React.FC = () => {
                 <div
                   key={card.id}
                   className={`combat-card ${canPlay ? 'playable' : 'disabled'}`}
-                  onClick={() => canPlay && playCombatCard(card.id)}
+                  onMouseEnter={canPlay ? playHover : undefined}
+                  onClick={() => {
+                    if (canPlay) {
+                      playCardPlay();
+                      playCombatCard(card.id);
+                    }
+                  }}
                 >
                   <div className="combat-card-top">
                     <span className="combat-card-cost">{card.cost} PT</span>
@@ -113,9 +125,13 @@ const CombatScreen: React.FC = () => {
                   <button
                     className="combat-card-btn"
                     disabled={!canPlay}
+                    onMouseEnter={canPlay ? playHover : undefined}
                     onClick={e => {
                       e.stopPropagation();
-                      if (canPlay) playCombatCard(card.id);
+                      if (canPlay) {
+                        playCardPlay();
+                        playCombatCard(card.id);
+                      }
                     }}
                   >
                     {canPlay ? 'JOGAR' : 'SEM PONTOS'}
@@ -131,7 +147,12 @@ const CombatScreen: React.FC = () => {
       <footer className="combat-bottom-bar">
         <button
           className="choice-btn combat-end-turn-btn"
-          onClick={() => endCombatTurn()}
+          onMouseEnter={playHover}
+          onClick={() => {
+            playDamage();
+            playDiceRoll();
+            endCombatTurn();
+          }}
         >
           [ ENCERRAR TURNO ]
         </button>

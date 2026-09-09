@@ -879,3 +879,74 @@ body {
   color: #ccc;
 }
 
+/* --- Controles de Áudio (Gerenciador de Áudio) --- */
+.settings-audio-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 480px;
+  background-color: #111;
+  border: 1px solid #333;
+  padding: 18px 20px;
+  box-sizing: border-box;
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  border-bottom: 1px dotted #222;
+  padding-bottom: 8px;
+}
+
+.settings-label {
+  color: #aaa;
+  letter-spacing: 1px;
+}
+
+.settings-slider-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-slider {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 130px;
+  height: 5px;
+  background: #2a2a2a;
+  outline: none;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.settings-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #64b5f6;
+  cursor: pointer;
+  border-radius: 1px;
+}
+
+.settings-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #64b5f6;
+  cursor: pointer;
+  border-radius: 1px;
+}
+
+.settings-value {
+  font-size: 0.8rem;
+  color: #64b5f6;
+  min-width: 35px;
+  text-align: right;
+  font-family: monospace;
+}
+
+

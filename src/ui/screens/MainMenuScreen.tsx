@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useAudio } from '../context/AudioContext';
 import '../../styles/global.css';
 
 interface MainMenuScreenProps {
@@ -16,7 +17,14 @@ const MainMenuScreen: React.FC<MainMenuScreenProps> = ({
   onSettings,
   canContinue,
 }) => {
+  const { playHover, playClick, playBGM } = useAudio();
+
+  useEffect(() => {
+    playBGM('menu');
+  }, [playBGM]);
+
   const handleExit = () => {
+    playClick();
     if (window.confirm('Deseja realmente fechar o jogo?')) {
       window.close();
     }
@@ -41,24 +49,48 @@ const MainMenuScreen: React.FC<MainMenuScreenProps> = ({
         </div>
 
         <div className="main-menu-options">
-          <button className="menu-btn" onClick={onNewGame}>
+          <button
+            className="menu-btn"
+            onMouseEnter={playHover}
+            onClick={() => {
+              playClick();
+              onNewGame();
+            }}
+          >
             [ NOVO JOGO ]
           </button>
 
           <button
             className={`menu-btn ${!canContinue ? 'disabled' : ''}`}
-            onClick={onContinue}
+            onMouseEnter={canContinue ? playHover : undefined}
+            onClick={() => {
+              if (canContinue) {
+                playClick();
+                onContinue();
+              }
+            }}
             disabled={!canContinue}
             title={canContinue ? 'Continuar expedição anterior' : 'Nenhum registro de expedição salvo'}
           >
             [ CONTINUAR ]
           </button>
 
-          <button className="menu-btn" onClick={onSettings}>
+          <button
+            className="menu-btn"
+            onMouseEnter={playHover}
+            onClick={() => {
+              playClick();
+              onSettings();
+            }}
+          >
             [ CONFIGURAÇÕES ]
           </button>
 
-          <button className="menu-btn menu-btn-exit" onClick={handleExit}>
+          <button
+            className="menu-btn menu-btn-exit"
+            onMouseEnter={playHover}
+            onClick={handleExit}
+          >
             [ SAIR ]
           </button>
         </div>
@@ -72,4 +104,3 @@ const MainMenuScreen: React.FC<MainMenuScreenProps> = ({
 };
 
 export default MainMenuScreen;
-

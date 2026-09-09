@@ -4,9 +4,6 @@
   "description": "Este projeto será um **roguelike narrativo de survival horror**, inspirado na estrutura de jogos como *Life in Adventure*, mas com universo, sistemas, identidade visual e decisões de design próprios.",
   "type": "module",
   "main": "dist-electron/main.js",
-  "directories": {
-    "test": "tests"
-  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
