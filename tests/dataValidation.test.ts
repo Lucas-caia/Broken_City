@@ -141,6 +141,22 @@ describe('Validação do Catálogo de Inimigos (enemies.json - Issue #11)', () =
     expect(carnical?.attack).toBeGreaterThanOrEqual(0);
     expect(carnical?.defense).toBeGreaterThanOrEqual(0);
   });
+
+  it('deve conter os novos monstros de baixo nível não paranormais (Issue #19)', () => {
+    const enemies: Enemy[] = rawEnemies as Enemy[];
+    const expectedIds = ['porco', 'cobra', 'muitos_ratos', 'enxame_de_marimbondos'];
+
+    for (const id of expectedIds) {
+      const enemy = enemies.find(e => e.id === id);
+      expect(enemy).toBeDefined();
+      expect(enemy?.category).toBe('MUNDANE');
+      expect(enemy?.tier).toBe(1);
+      expect(enemy?.health).toBeGreaterThan(0);
+      expect(enemy?.attack).toBeGreaterThan(0);
+      expect(enemy?.defense).toBeGreaterThanOrEqual(0);
+      expect(enemy?.description.length).toBeGreaterThan(10);
+    }
+  });
 });
 
 describe('Conteúdo de Teste da Primeira Run (Issue #13 - Milestone 0.1)', () => {

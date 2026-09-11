@@ -9,6 +9,12 @@ import {
   createRunFromCharacter,
   hasSavedRun,
 } from '../src/game/core/GameStateContext';
+import {
+  createCharactersMap,
+  getCharacter,
+  getCharacterBaseStats,
+  listCharacters,
+} from '../src/game/systems/characterSystem';
 import { BaseItem } from '../src/game/types/item';
 
 const mockItemsMap = new Map<string, BaseItem>([
@@ -208,5 +214,39 @@ describe('Verificação de Estado de Save (hasSavedRun)', () => {
       JSON.stringify({ runState: 'VICTORY', player: {} })
     );
     expect(hasSavedRun()).toBe(false);
+  });
+});
+
+describe('Estrutura de Status Base e Helpers de Personagem (Issue #19)', () => {
+  const characters = rawCharacters as CharacterDefinition[];
+  const charactersMap = createCharactersMap(characters);
+
+  it('deve indexar e consultar personagens no mapa por ID', () => {
+    const arthur = getCharacter(charactersMap, 'arthur_vance');
+    expect(arthur).toBeDefined();
+    expect(arthur?.name).toBe('Arthur Vance');
+
+    const evelyn = getCharacter(charactersMap, 'evelyn_reed');
+    expect(evelyn).toBeDefined();
+    expect(evelyn?.title).toBe('Médica Pesquisadora');
+
+    const inexistente = getCharacter(charactersMap, 'fantasma');
+    expect(inexistente).toBeUndefined();
+  });
+
+  it('deve extrair status base com getCharacterBaseStats', () => {
+    const arthur = characters.find(c => c.id === 'arthur_vance')!;
+    const stats = getCharacterBaseStats(arthur);
+
+    expect(stats.maxHealth).toBe(120);
+    expect(stats.maxSanity).toBe(80);
+    expect(stats.attributes.strength).toBe(6);
+    expect(stats.attributes.constitution).toBe(6);
+  });
+
+  it('deve listar todos os personagens disponíveis com listCharacters', () => {
+    const list = listCharacters(characters);
+    expect(list.length).toBe(characters.length);
+    expect(list.some(c => c.id === 'silas_cole')).toBe(true);
   });
 });

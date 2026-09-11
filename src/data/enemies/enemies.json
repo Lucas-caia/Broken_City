@@ -7,7 +7,9 @@
     "attack": 12,
     "defense": 4,
     "description": "Uma manifestação incorpórea nascida do horror de Broken City. Ela desliza pelas paredes sem produzir ruídos e ataca drenando a força vital daqueles que cruzam seu caminho.",
-    "imageUrl": "correntes.jpg"
+    "imageUrl": "correntes.jpg",
+    "category": "PARANORMAL",
+    "tier": 2
   },
   {
     "id": "carnical_dos_tuneis",
@@ -17,6 +19,56 @@
     "attack": 11,
     "defense": 3,
     "description": "Uma aberração faminta que rasteja pela tubulação oxidada de Broken City. Seus membros alongados terminam em garras afiadas de metal fundido.",
-    "imageUrl": "correntes.jpg"
+    "imageUrl": "correntes.jpg",
+    "category": "ABERRATION",
+    "tier": 2
+  },
+  {
+    "id": "porco",
+    "name": "Porco Selvagem",
+    "health": 24,
+    "maxHealth": 24,
+    "attack": 7,
+    "defense": 2,
+    "description": "Um animal outrora doméstico que regrediu a um estado feroz e territorial entre os escombros. Ataca com investidas pesadas e mordidas violentas.",
+    "imageUrl": "correntes.jpg",
+    "category": "MUNDANE",
+    "tier": 1
+  },
+  {
+    "id": "cobra",
+    "name": "Cobra Venenosa",
+    "health": 16,
+    "maxHealth": 16,
+    "attack": 9,
+    "defense": 1,
+    "description": "Uma víbora rastejante adaptada às frestas úmidas do asfalto quebrado. Rápida e silenciosa, injeta toxinas necrotizantes com um bote quase imperceptível.",
+    "imageUrl": "correntes.jpg",
+    "category": "MUNDANE",
+    "tier": 1
+  },
+  {
+    "id": "muitos_ratos",
+    "name": "Muitos Ratos",
+    "health": 20,
+    "maxHealth": 20,
+    "attack": 6,
+    "defense": 0,
+    "description": "Uma colônia faminta de roedores descontrolados que se movem em massa pelo chão imundo. Isolados são insignificantes, mas juntos devoram tecidos e carne em segundos.",
+    "imageUrl": "correntes.jpg",
+    "category": "MUNDANE",
+    "tier": 1
+  },
+  {
+    "id": "enxame_de_marimbondos",
+    "name": "Enxame de Marimbondos",
+    "health": 18,
+    "maxHealth": 18,
+    "attack": 8,
+    "defense": 0,
+    "description": "Uma nuvem agressiva de insetos alados nidificados em ferragens enferrujadas. Seu zumbido ensurdecedor cerca a vítima com dezenas de picadas urticantes consecutivas.",
+    "imageUrl": "correntes.jpg",
+    "category": "MUNDANE",
+    "tier": 1
   }
 ]

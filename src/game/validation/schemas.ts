@@ -30,6 +30,8 @@ export const BaseItemSchema = z.object({
 
 export const ItemsListSchema = z.array(BaseItemSchema);
 
+export const EnemyCategorySchema = z.enum(['MUNDANE', 'PARANORMAL', 'ABERRATION', 'BEAST']);
+
 export const EnemySchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -39,6 +41,8 @@ export const EnemySchema = z.object({
   defense: z.number().nonnegative(),
   description: z.string(),
   imageUrl: z.string().optional(),
+  category: EnemyCategorySchema.optional(),
+  tier: z.number().int().positive().optional(),
 });
 
 export const EnemiesListSchema = z.array(EnemySchema);
