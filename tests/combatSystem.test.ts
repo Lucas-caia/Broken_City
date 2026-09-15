@@ -14,6 +14,7 @@ import { BaseItem } from '../src/game/types/item';
 import { Enemy } from '../src/game/types/enemy';
 import { resolveChoice } from '../src/game/core/eventEngine';
 import { GameEvent, Choice } from '../src/game/types/event';
+import rawEnemies from '../src/data/enemies/enemies.json';
 
 // Fixtures
 const mockItemsMap = new Map<string, BaseItem>([
@@ -333,5 +334,98 @@ describe('Combat System - Event Engine Integration', () => {
     expect(nextState.combat?.enemy.name).toBe('A Sombra');
     expect(nextState.combat?.hand.length).toBe(7);
     expect(nextState.combat?.deck.length).toBe(33);
+  });
+
+  describe('Calibragem de Força dos Inimigos da Run (Milestone 0.2)', () => {
+    const runEnemyIds = ['a_sombra', 'carnical_dos_tuneis'];
+
+    it('ambos os inimigos da run devem possuir attack configurado para 28', () => {
+      const enemies = rawEnemies as Enemy[];
+      for (const id of runEnemyIds) {
+        const enemy = enemies.find(e => e.id === id);
+        expect(enemy).toBeDefined();
+        expect(enemy?.attack).toBe(28);
+      }
+    });
+
+    it('ambos os inimigos da run devem causar exatamente ou mais de 100 de dano em 4 turnos de combate', () => {
+      const enemies = rawEnemies as Enemy[];
+      const rng = createRNG(42);
+
+      for (const id of runEnemyIds) {
+        const enemy = enemies.find(e => e.id === id)!;
+        expect(enemy).toBeDefined();
+
+        // 1. Teste com Arthur Vance (Constituição 6 -> Defesa 3)
+        const arthurPlayer: PlayerData = {
+          attributes: { strength: 6, dexterity: 4, constitution: 6, intelligence: 3, perception: 4 },
+          health: { current: 200, max: 200 },
+          sanity: { current: 80, max: 80 },
+          level: 1,
+          equippedItemIds: [],
+        };
+
+        const initialCombatState = startCombat(arthurPlayer, enemy, mockItemsMap, rng);
+        let currentCombat = initialCombatState;
+        let currentPlayer = arthurPlayer;
+
+        // Turno 1
+        const r1 = endTurn(currentCombat, currentPlayer, rng, mockItemsMap);
+        currentCombat = r1.nextCombat;
+        currentPlayer = r1.updatedPlayer;
+        const dmg1 = 200 - currentPlayer.health.current;
+        expect(dmg1).toBe(25);
+
+        // Turno 2
+        const r2 = endTurn(currentCombat, currentPlayer, rng, mockItemsMap);
+        currentCombat = r2.nextCombat;
+        currentPlayer = r2.updatedPlayer;
+        const dmg2 = 200 - currentPlayer.health.current;
+        expect(dmg2).toBe(50);
+
+        // Turno 3 - Ainda não atingiu 100 (precisa de pelo menos 4 turnos)
+        const r3 = endTurn(currentCombat, currentPlayer, rng, mockItemsMap);
+        currentCombat = r3.nextCombat;
+        currentPlayer = r3.updatedPlayer;
+        const dmg3 = 200 - currentPlayer.health.current;
+        expect(dmg3).toBe(75);
+        expect(dmg3).toBeLessThan(100);
+
+        // Turno 4 - Atinge exatamente 100 de dano
+        const r4 = endTurn(currentCombat, currentPlayer, rng, mockItemsMap);
+        currentCombat = r4.nextCombat;
+        currentPlayer = r4.updatedPlayer;
+        const dmg4 = 200 - currentPlayer.health.current;
+        expect(dmg4).toBe(100);
+        expect(dmg4).toBeGreaterThanOrEqual(100);
+
+        // 2. Teste com Silas Cole / Dra. Evelyn Reed (Constituição 4 -> Defesa 2)
+        const silasPlayer: PlayerData = {
+          attributes: { strength: 4, dexterity: 7, constitution: 4, intelligence: 5, perception: 5 },
+          health: { current: 200, max: 200 },
+          sanity: { current: 95, max: 95 },
+          level: 1,
+          equippedItemIds: [],
+        };
+
+        let combatSilas = startCombat(silasPlayer, enemy, mockItemsMap, rng);
+        let playerSilas = silasPlayer;
+
+        for (let t = 1; t <= 3; t++) {
+          const res = endTurn(combatSilas, playerSilas, rng, mockItemsMap);
+          combatSilas = res.nextCombat;
+          playerSilas = res.updatedPlayer;
+        }
+        const silasDmgTurn3 = 200 - playerSilas.health.current;
+        expect(silasDmgTurn3).toBe(78); // 3 * 26 = 78 (< 100)
+        expect(silasDmgTurn3).toBeLessThan(100);
+
+        const resTurn4 = endTurn(combatSilas, playerSilas, rng, mockItemsMap);
+        playerSilas = resTurn4.updatedPlayer;
+        const silasDmgTurn4 = 200 - playerSilas.health.current;
+        expect(silasDmgTurn4).toBe(104); // 4 * 26 = 104 (>= 100)
+        expect(silasDmgTurn4).toBeGreaterThanOrEqual(100);
+      }
+    });
   });
 });

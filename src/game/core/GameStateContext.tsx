@@ -7,13 +7,15 @@ import React, {
   ReactNode,
   useMemo,
 } from 'react';
-import { GameState } from '../types/gameState';
+import { GameState, Item } from '../types/gameState';
 import { Choice, GameEvent } from '../types/event';
 import { BaseItem } from '../types/item';
 import { Enemy } from '../types/enemy';
+import { CharacterDefinition } from '../types/character';
 import rawEvents from '../../data/events/events.json';
 import rawItems from '../../data/items/items.json';
 import rawEnemies from '../../data/enemies/enemies.json';
+import rawCharacters from '../../data/characters/characters.json';
 import { createEventsMap, resolveChoice } from './eventEngine';
 import { createRNG, Mulberry32RNG } from './rng';
 import {
@@ -23,6 +25,8 @@ import {
   validateItemsCatalog,
   EnemiesListSchema,
   validateEnemiesCatalog,
+  CharactersListSchema,
+  validateCharactersCatalog,
 } from '../validation/schemas';
 import {
   equipItem as equipItemHelper,
@@ -65,6 +69,83 @@ if (!enemiesValidation.valid) {
 const enemiesMap = new Map<string, Enemy>();
 for (const enemy of enemiesData) {
   enemiesMap.set(enemy.id, enemy);
+}
+
+// Tipagem e validação do catálogo de personagens (Issue #16)
+const charactersData: CharacterDefinition[] = CharactersListSchema.parse(rawCharacters);
+const charactersValidation = validateCharactersCatalog(charactersData);
+if (!charactersValidation.valid) {
+  console.error('Erros no catálogo de personagens:', charactersValidation.errors);
+}
+const charactersMap = new Map<string, CharacterDefinition>();
+for (const char of charactersData) {
+  charactersMap.set(char.id, char);
+}
+
+export function createRunFromCharacter(
+  character: CharacterDefinition,
+  itemsRegistry: Map<string, BaseItem>,
+  seed?: number
+): GameState {
+  const actualSeed =
+    seed !== undefined && seed !== null
+      ? seed >>> 0
+      : (Date.now() ^ (Math.random() * 0x100000000)) >>> 0;
+
+  const initialInventory: Item[] = (character.startingInventory || []).map(item => {
+    const itemDef = itemsRegistry.get(item.itemId);
+    return {
+      id: item.itemId,
+      name: item.name || itemDef?.name || item.itemId,
+      quantity: item.quantity,
+    };
+  });
+
+  return {
+    runState: 'EVENT',
+    seed: actualSeed,
+    player: {
+      characterId: character.id,
+      name: character.name,
+      level: 1,
+      health: {
+        current: character.health.current,
+        max: character.health.max,
+      },
+      sanity: {
+        current: character.sanity.current,
+        max: character.sanity.max,
+      },
+      attributes: {
+        ...character.attributes,
+      },
+      flags: [],
+      inventory: initialInventory,
+      equippedItemIds: [...(character.startingEquippedItemIds || [])],
+    },
+    currentEventId: STARTING_EVENT_ID,
+    combat: null,
+    logHistory: [
+      `[INÍCIO DA RUN]: Sobrevivente: ${character.name} — ${character.title}.`,
+      `[INÍCIO DA RUN]: Seed da partida: ${actualSeed}`,
+    ],
+  };
+}
+
+export function hasSavedRun(): boolean {
+  try {
+    if (typeof localStorage === 'undefined') return false;
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw) as GameState;
+    return Boolean(
+      parsed &&
+      parsed.player &&
+      (parsed.runState === 'EVENT' || parsed.runState === 'COMBAT')
+    );
+  } catch {
+    return false;
+  }
 }
 
 function createNewRunState(seed?: number): GameState {
@@ -122,6 +203,7 @@ type GameAction =
   | { type: 'SET_STATE'; payload: GameState }
   | { type: 'START_RUN'; seed?: number }
   | { type: 'RESTART_RUN'; seed?: number }
+  | { type: 'START_RUN_WITH_CHARACTER'; character: CharacterDefinition; seed?: number }
   | { type: 'RESOLVE_CHOICE'; choice: Choice }
   | { type: 'EQUIP_ITEM'; itemId: string }
   | { type: 'UNEQUIP_ITEM'; itemId: string }
@@ -137,6 +219,8 @@ interface GameStateContextProps {
   itemsMap: Map<string, BaseItem>;
   enemiesData: Enemy[];
   enemiesMap: Map<string, Enemy>;
+  charactersData: CharacterDefinition[];
+  charactersMap: Map<string, CharacterDefinition>;
   makeChoice: (choice: Choice) => void;
   equipItem: (itemId: string) => void;
   unequipItem: (itemId: string) => void;
@@ -144,8 +228,11 @@ interface GameStateContextProps {
   playCombatCard: (cardId: string) => void;
   endCombatTurn: () => void;
   startRun: (seed?: number) => void;
+  startRunFromCharacter: (character: CharacterDefinition, seed?: number) => void;
   restartRun: (seed?: number) => void;
   clearSave: () => void;
+  hasSavedRun: () => boolean;
+  loadSavedRun: () => boolean;
 }
 
 const GameStateContext = createContext<GameStateContextProps | undefined>(undefined);
@@ -163,6 +250,12 @@ export const GameStateProvider: React.FC<{ children: ReactNode }> = ({ children 
         case 'START_RUN':
         case 'RESTART_RUN': {
           const fresh = createNewRunState(action.seed);
+          rngRef.current = createRNG(fresh.seed);
+          return fresh;
+        }
+
+        case 'START_RUN_WITH_CHARACTER': {
+          const fresh = createRunFromCharacter(action.character, itemsMap, action.seed);
           rngRef.current = createRNG(fresh.seed);
           return fresh;
         }
@@ -359,8 +452,10 @@ export const GameStateProvider: React.FC<{ children: ReactNode }> = ({ children 
   // Auto-save
   useEffect(() => {
     try {
-      if (state.runState === 'GAME_OVER' || state.runState === 'VICTORY') {
-        localStorage.removeItem(SAVE_KEY);
+      if (state.runState === 'GAME_OVER' || state.runState === 'VICTORY' || state.runState === 'IDLE') {
+        if (state.runState === 'GAME_OVER' || state.runState === 'VICTORY') {
+          localStorage.removeItem(SAVE_KEY);
+        }
       } else {
         localStorage.setItem(SAVE_KEY, JSON.stringify(state));
       }
@@ -397,6 +492,11 @@ export const GameStateProvider: React.FC<{ children: ReactNode }> = ({ children 
     dispatch({ type: 'START_RUN', seed });
   };
 
+  const startRunFromCharacter = (character: CharacterDefinition, seed?: number) => {
+    localStorage.removeItem(SAVE_KEY);
+    dispatch({ type: 'START_RUN_WITH_CHARACTER', character, seed });
+  };
+
   const restartRun = (seed?: number) => {
     localStorage.removeItem(SAVE_KEY);
     dispatch({ type: 'RESTART_RUN', seed });
@@ -404,6 +504,16 @@ export const GameStateProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const clearSave = () => {
     localStorage.removeItem(SAVE_KEY);
+  };
+
+  const loadSavedRun = (): boolean => {
+    const saved = loadSavedState();
+    if (saved && (saved.runState === 'EVENT' || saved.runState === 'COMBAT')) {
+      rngRef.current = createRNG(saved.seed);
+      dispatch({ type: 'SET_STATE', payload: saved });
+      return true;
+    }
+    return false;
   };
 
   const contextValue = useMemo(
@@ -415,6 +525,8 @@ export const GameStateProvider: React.FC<{ children: ReactNode }> = ({ children 
       itemsMap,
       enemiesData,
       enemiesMap,
+      charactersData,
+      charactersMap,
       makeChoice,
       equipItem,
       unequipItem,
@@ -422,8 +534,11 @@ export const GameStateProvider: React.FC<{ children: ReactNode }> = ({ children 
       playCombatCard,
       endCombatTurn,
       startRun,
+      startRunFromCharacter,
       restartRun,
       clearSave,
+      hasSavedRun,
+      loadSavedRun,
     }),
     [state]
   );

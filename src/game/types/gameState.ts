@@ -18,6 +18,8 @@ export interface Item {
 }
 
 export interface PlayerData {
+  characterId?: string;
+  name?: string;
   level: number;
   health: { current: number; max: number };
   sanity: { current: number; max: number };

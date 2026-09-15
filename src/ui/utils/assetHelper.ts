@@ -6,7 +6,7 @@ interface ImageModule {
 }
 
 const imageModules = import.meta.glob<ImageModule>(
-  '../../assets/images/*.{jpg,jpeg,png,webp,svg}',
+  '../../assets/images/**/*.{jpg,jpeg,png,webp,svg}',
   { eager: true }
 );
 
@@ -15,6 +15,18 @@ export function getEventImageUrl(imageName?: string | null): string | null {
 
   const entry = Object.entries(imageModules).find(([path]) =>
     path.endsWith(`/${imageName}`)
+  );
+
+  return entry ? (entry[1] as ImageModule).default : null;
+}
+
+export function getCardImageUrl(imageName?: string | null): string | null {
+  if (!imageName) return null;
+
+  const entry = Object.entries(imageModules).find(([path]) =>
+    path.endsWith(`/${imageName}`) ||
+    path.endsWith(`/${imageName}.png`) ||
+    path.endsWith(`/${imageName}.jpg`)
   );
 
   return entry ? (entry[1] as ImageModule).default : null;
