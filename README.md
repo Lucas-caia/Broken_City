@@ -4,21 +4,23 @@ Roguelike narrativo de **survival horror e horror cósmico**, inspirado na estru
 
 ---
 
-## Status Atual (Milestone 0.1)
+## Status Atual (Milestone 0.2)
 
-O núcleo jogável do jogo está implementado, testado e validado:
+O núcleo jogável e a experiência audiovisual do jogo estão implementados, testados e validados:
 
 - **Event Engine Reativo:** Navegação entre eventos, testes de atributos, concessão de itens/flags e ramificações narrativas.
 - **Validação com Zod:** Todos os esquemas de dados (`events.json`, `items.json`, `enemies.json`) são estritamente validados contra integridade referencial.
 - **RNG Determinístico (Mulberry32):** Rolagens de dados e verificações de atributos reprodutíveis via Seed.
 - **Sistema de Inventário:** Armazenamento de itens, limite de até 3 equipamentos ativos simultâneos com bônus/penalidades de atributos, e consumíveis utilizáveis a qualquer momento (ex: Banana).
-- **Combate com Cartas & Dados:**
+- **Combate com Cartas & Dados 3D:**
   - **Baralho de 40 cartas** gerado dinamicamente pelas armas equipadas (Desarmado = Socos; Martelo = Marteladas; 2 armas = 50%/50%).
-  - **Pontos de Ação por 2d6:** A cada rodada são rolados 2 dados (2 a 12 pontos).
+  - **Modelos de Cartas e Efeitos Visuais:** Componentes temáticos com fade-out, shake de impacto e flash de dano na barra de vida.
+  - **Rolagem 3D Física a 60 FPS:** Dados lançados proceduralmente na tela em 3D com física contínua via `requestAnimationFrame`, quiques realistas no feltro e desaceleração natural parando na face sorteada.
   - **Mão de até 7 cartas:** Cada carta possui custo de ação e dano escalado por atributos e nível.
   - **Regra de Exaustão:** Esgotar o baralho de compra resulta em derrota por fadiga.
-- **Conteúdo da Primeira Run:** 9 eventos narrativos encadeados sem loops infinitos, 2 inimigos enfrentáveis (*A Sombra* e o *Carniçal dos Túneis*), 5 itens essenciais e múltiplos desfechos (vitória ou colapso físico/mental).
-- **Tela Inicial & Seleção de Personagens:** Menu inicial retrô com versão (`v0.1`), opções de *Novo Jogo*, *Continuar* (com verificação inteligente de save), *Configurações* e *Sair*. Seleção escalável de sobreviventes a partir de dados (Arthur Vance, Dra. Evelyn Reed, Silas Cole).
+- **Inimigos Balanceados e Ameaçadores:** Inimigos da run (*A Sombra* e *Carniçal dos Túneis*) reforçados para infligir 100 de dano ao longo de 4 turnos, além do catálogo expandido de criaturas mundanas.
+- **Áudio Imersivo:** Gerenciador com síntese dinâmica de ondas sonoras (Web Audio API) e suporte para arquivos de áudio externos.
+- **Tela Inicial & Seleção de Personagens:** Menu inicial retrô com versão (`v0.2`), opções de *Novo Jogo*, *Continuar* (com verificação inteligente de save), *Configurações* e *Sair*. Seleção escalável de sobreviventes a partir de dados (Arthur Vance, Dra. Evelyn Reed, Silas Cole).
 
 ---
 
@@ -79,9 +81,12 @@ npm install
 ---
 
 ## 🔮 Roadmap & Próximos Passos
-
-- [ ] **Expansão Narrativa (Milestone 0.2):** Criação de novos setores de Broken City, ramificações de eventos e NPCs interativos.
-- [ ] **Novas Cartas & Efeitos de Combate:** Adição de cartas de defesa (bloqueio), buffs, debuffs e habilidades especiais.
-- [ ] **Efeitos Sonoros e Trilha Sonora:** Áudio ambiente de suspense e feedback tátil em rolagens e golpes.
-- [ ] **Meta-Progressão:** Diário de expedições, desbloqueio de novas armas e registros de sobreviventes.
+ 
+- [x] **Efeitos Sonoros e Trilha Sonora (Milestone 0.2):** Gerenciador de áudio com síntese de ondas e suporte a SFX/BGM externos.
+- [x] **Visual de Cartas e Feedback de Combate (Milestone 0.2):** Templates customizados, fade-out e tremores de tela reativos.
+- [x] **Rolagem de Dados 3D Fluida a 60 FPS (Milestone 0.2):** Física analítica em rAF, quiques no feltro e ancoragem na mesa.
+- [x] **Rebalanceamento de Criaturas da Run (Milestone 0.2):** Inimigos da run calibrados para infligir 100 de dano em 4 turnos.
+- [ ] **Expansão Narrativa (Milestone 0.3):** Novos setores exploráveis de Broken City, novos encontros narrativos e NPCs interativos.
+- [ ] **Novos Tipos de Cartas & Defesa (Milestone 0.3):** Adição de cartas de bloqueio, buffs, debuffs e habilidades especiais.
+- [ ] **Meta-Progressão & Conquistas:** Diário de expedições, desbloqueio de novas armas e registros de sobreviventes.
 - [ ] **Adaptação Mobile:** Integração com Capacitor para builds nativas em Android e iOS.

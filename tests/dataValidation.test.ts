@@ -159,7 +159,7 @@ describe('Validação do Catálogo de Inimigos (enemies.json - Issue #11)', () =
   });
 });
 
-describe('Conteúdo de Teste da Primeira Run (Issue #13 - Milestone 0.1)', () => {
+describe('Conteúdo de Teste da Primeira Run (Milestone 0.2)', () => {
   it('deve conter entre 5 e 10 eventos na base de dados', () => {
     const events: GameEvent[] = rawEvents as GameEvent[];
     expect(events.length).toBeGreaterThanOrEqual(5);

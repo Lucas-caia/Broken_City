@@ -9,7 +9,7 @@ interface MainMenuScreenProps {
   canContinue: boolean;
 }
 
-const GAME_VERSION = 'v0.1';
+const GAME_VERSION = 'v0.2';
 
 const MainMenuScreen: React.FC<MainMenuScreenProps> = ({
   onNewGame,
@@ -96,7 +96,7 @@ const MainMenuScreen: React.FC<MainMenuScreenProps> = ({
         </div>
 
         <div className="main-menu-footer-notice">
-          <span className="blink-cursor">&gt;</span> SISTEMA DE SOBREVIVÊNCIA ESTÁVEL &bull; MILESTONE 0.1
+          <span className="blink-cursor">&gt;</span> SISTEMA DE SOBREVIVÊNCIA ESTÁVEL &bull; MILESTONE 0.2
         </div>
       </section>
     </div>
