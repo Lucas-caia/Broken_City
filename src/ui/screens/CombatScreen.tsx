@@ -3,14 +3,18 @@ import { useGameState } from '../../game/core/GameStateContext';
 import { useAudio } from '../context/AudioContext';
 import { getEventImageUrl } from '../utils/assetHelper';
 import { CardTemplate } from '../components/CardTemplate';
+import { Die3D, DiceStageOverlay } from '../components/Dice3D';
 import '../../styles/global.css';
-
-const DICE_ICONS = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 
 const CombatScreen: React.FC = () => {
   const { state, playCombatCard, endCombatTurn } = useGameState();
   const { playHover, playCardPlay, playDiceRoll, playDamage, playBGM } = useAudio();
   const combat = state.combat;
+
+  // Estados de rolagem de dados 3D (Issue de Dados 3D)
+  const [isDiceRolling, setIsDiceRolling] = useState<boolean>(false);
+  const [isDiceStageActive, setIsDiceStageActive] = useState<boolean>(false);
+  const lastRolledRoundRef = useRef<number>(-1);
 
   // Estados de animação e impacto (Issue #20)
   const [playedCardId, setPlayedCardId] = useState<string | null>(null);
@@ -30,6 +34,47 @@ const CombatScreen: React.FC = () => {
   useEffect(() => {
     playBGM('combat');
   }, [playBGM]);
+
+  // Rolagem 3D de dados no início do combate e a cada nova rodada
+  useEffect(() => {
+    if (!combat) return;
+
+    if (combat.round !== lastRolledRoundRef.current) {
+      lastRolledRoundRef.current = combat.round;
+
+      setIsDiceStageActive(true);
+      setIsDiceRolling(true);
+      playDiceRoll();
+
+      // 1.7s: os dados assentam na face rolada com física de rotação
+      const t1 = setTimeout(() => {
+        setIsDiceRolling(false);
+      }, 1700);
+
+      // 2.5s: encerra o palco central e fixa/doca na barra de recursos
+      const t2 = setTimeout(() => {
+        setIsDiceStageActive(false);
+      }, 2500);
+
+      // Timer de segurança (não passa de 3.2s, bem abaixo do teto de 4s)
+      const tSafety = setTimeout(() => {
+        setIsDiceRolling(false);
+        setIsDiceStageActive(false);
+      }, 3200);
+
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(tSafety);
+      };
+    }
+  }, [combat?.round, playDiceRoll]);
+
+  // Pular animação de rolagem com clique do jogador
+  const handleSkipDiceStage = () => {
+    setIsDiceRolling(false);
+    setIsDiceStageActive(false);
+  };
 
   // Efeito ao receber dano no inimigo
   useEffect(() => {
@@ -97,9 +142,7 @@ const CombatScreen: React.FC = () => {
     Math.min(100, Math.round((combat.enemy.currentHealth / maxHp) * 100))
   );
 
-  const lastRoll = combat.lastDiceRoll || { die1: 0, die2: 0, total: combat.availablePoints };
-  const die1Icon = DICE_ICONS[lastRoll.die1] || (lastRoll.die1 > 0 ? String(lastRoll.die1) : '-');
-  const die2Icon = DICE_ICONS[lastRoll.die2] || (lastRoll.die2 > 0 ? String(lastRoll.die2) : '-');
+  const lastRoll = combat.lastDiceRoll || { die1: 1, die2: 1, total: combat.availablePoints };
 
   // Disparo com animação de carta
   const handleCardClick = (cardId: string) => {
@@ -129,6 +172,18 @@ const CombatScreen: React.FC = () => {
         screenShake ? `shake-${screenShake}` : ''
       }`}
     >
+      {/* Palco 3D de Rolagem de Dados no Início de Turno/Combate */}
+      {isDiceStageActive && (
+        <DiceStageOverlay
+          die1={lastRoll.die1 || 1}
+          die2={lastRoll.die2 || 1}
+          total={lastRoll.total}
+          isRolling={isDiceRolling}
+          rollSession={combat.round}
+          onSkip={handleSkipDiceStage}
+        />
+      )}
+
       {/* Vinheta de dano vermelho ao sofrer golpe */}
       {playerDamageFlash && <div className="combat-damage-vignette" />}
 
@@ -185,9 +240,15 @@ const CombatScreen: React.FC = () => {
       {/* Faixa de Dados e Recursos */}
       <div className="combat-resource-bar">
         <div className="combat-dice-info">
-          <span className="combat-dice-badge">
-            DADOS: {die1Icon} ({lastRoll.die1}) + {die2Icon} ({lastRoll.die2}) = {lastRoll.total} pts
-          </span>
+          <div className="dice-dock-tray" title="Dados de ação da rodada">
+            <span className="dice-dock-label">DADOS:</span>
+            <div className="dice-dock-slots">
+              <Die3D value={lastRoll.die1 || 1} size={24} />
+              <span className="dice-dock-plus">+</span>
+              <Die3D value={lastRoll.die2 || 1} size={24} />
+            </div>
+            <span className="dice-dock-total">= {lastRoll.total} PTS</span>
+          </div>
           <span className="combat-points-badge">
             DISPONÍVEL: <strong>{combat.availablePoints}</strong> PTS
           </span>

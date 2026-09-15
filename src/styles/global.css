@@ -420,7 +420,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 18px;
+  padding: 6px 18px;
   background-color: #141414;
   border-bottom: 1px solid #2a2a2a;
   font-size: 0.85rem;
@@ -432,9 +432,42 @@ body {
   align-items: center;
 }
 
-.combat-dice-badge {
+/* --- Dock de Dados 3D na Barra de Recursos --- */
+.dice-dock-tray {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1a1a1a;
+  padding: 4px 10px;
+  border: 1px solid #333;
+  border-radius: 6px;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.8);
+}
+
+.dice-dock-label {
+  font-size: 0.75rem;
+  color: #888;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.dice-dock-slots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dice-dock-plus {
   color: #ffb74d;
   font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.dice-dock-total {
+  color: #ffb74d;
+  font-weight: bold;
+  font-size: 0.85rem;
+  margin-left: 2px;
 }
 
 .combat-points-badge {
@@ -816,6 +849,195 @@ body {
   background-color: #181b1d;
   color: #666;
   border-color: #25282a;
+}
+
+/* --- Dados 3D em CSS Puro (preserve-3d) (Issue #20 & Dados) --- */
+.die-3d-scene {
+  perspective: 700px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+}
+
+.die-3d-cube {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.die-3d-cube.die-rolling {
+  animation: dieTumbleKeyframe 1.8s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes dieTumbleKeyframe {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateY(-25px);
+  }
+  20% {
+    transform: rotateX(360deg) rotateY(180deg) rotateZ(90deg) translateY(0);
+  }
+  40% {
+    transform: rotateX(720deg) rotateY(540deg) rotateZ(180deg) translateY(-15px);
+  }
+  65% {
+    transform: rotateX(900deg) rotateY(720deg) rotateZ(270deg) translateY(0);
+  }
+  85% {
+    transform: rotateX(1080deg) rotateY(900deg) rotateZ(360deg) translateY(-5px);
+  }
+  100% {
+    transform: rotateX(1080deg) rotateY(1080deg) rotateZ(360deg) translateY(0);
+  }
+}
+
+.die-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #2e3538, #181d1f);
+  border: 1.5px solid #546e7a;
+  border-radius: 4px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.85);
+  backface-visibility: hidden;
+}
+
+.die-face-1 {
+  transform: rotateY(0deg) translateZ(var(--die-half-size, 24px));
+}
+
+.die-face-6 {
+  transform: rotateY(180deg) translateZ(var(--die-half-size, 24px));
+}
+
+.die-face-2 {
+  transform: rotateY(90deg) translateZ(var(--die-half-size, 24px));
+}
+
+.die-face-5 {
+  transform: rotateY(-90deg) translateZ(var(--die-half-size, 24px));
+}
+
+.die-face-3 {
+  transform: rotateX(90deg) translateZ(var(--die-half-size, 24px));
+}
+
+.die-face-4 {
+  transform: rotateX(-90deg) translateZ(var(--die-half-size, 24px));
+}
+
+.die-pip-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 80%;
+  height: 80%;
+}
+
+.die-pip-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.die-pip {
+  display: inline-block;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffcc80, #ef6c00);
+  box-shadow: 0 0 3px rgba(255, 183, 77, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Palco Central de Rolagem de Dados */
+.dice-roll-stage-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(2px);
+  z-index: 45;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  animation: fadeInStage 0.2s ease-out;
+}
+
+@keyframes fadeInStage {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dice-roll-stage-box {
+  background: #15181a;
+  border: 2px solid #ffb74d;
+  border-radius: 12px;
+  padding: 24px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 0 25px rgba(255, 183, 77, 0.4), inset 0 0 15px rgba(0, 0, 0, 0.8);
+  animation: popStage 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes popStage {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.dice-roll-arena {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.die-arena-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+
+.dice-plus-symbol {
+  font-size: 1.8rem;
+  color: #ffb74d;
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(255, 183, 77, 0.8);
+}
+
+.dice-roll-result-banner {
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+}
+
+.dice-rolling-text {
+  color: #aaa;
+  font-style: italic;
+  animation: blinkRolling 0.7s infinite alternate;
+}
+
+@keyframes blinkRolling {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
+}
+
+.dice-settled-text {
+  color: #fff;
+  font-weight: bold;
+}
+
+.dice-total-highlight {
+  color: #64b5f6;
+  font-size: 1.2rem;
+  text-shadow: 0 0 8px rgba(100, 181, 246, 0.8);
 }
 
 
@@ -1401,5 +1623,392 @@ body {
   text-align: right;
   font-family: monospace;
 }
+
+/* ==========================================================================
+   SISTEMA DE DADOS 3D (COMBATE)
+   ========================================================================== */
+
+.combat-screen-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Cenário 3D com perspectiva */
+.die-3d-scene {
+  perspective: 600px;
+  perspective-origin: 50% 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+/* Cubo 3D */
+.die-3d-cube {
+  position: relative;
+  transform-style: preserve-3d;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.die-3d-cube.die-settled {
+  transition: transform 0.65s cubic-bezier(0.18, 0.89, 0.32, 1.25);
+}
+
+.die-3d-cube.die-rolling {
+  animation: dieTumbleSpin 0.38s linear infinite;
+}
+
+/* Rolagem Natural com Desaceleração Física - Dado 1 */
+.die-3d-cube.die-rolling-natural-1 {
+  animation: dieNaturalRoll1 1.7s cubic-bezier(0.22, 0.82, 0.28, 1) forwards;
+}
+
+@keyframes dieNaturalRoll1 {
+  0% {
+    transform: rotateX(calc(var(--target-rx, 0deg) + 1080deg)) rotateY(calc(var(--target-ry, 0deg) + 1440deg)) rotateZ(360deg);
+  }
+  28% {
+    transform: rotateX(calc(var(--target-rx, 0deg) + 720deg)) rotateY(calc(var(--target-ry, 0deg) + 990deg)) rotateZ(230deg);
+  }
+  52% {
+    transform: rotateX(calc(var(--target-rx, 0deg) + 450deg)) rotateY(calc(var(--target-ry, 0deg) + 630deg)) rotateZ(130deg);
+  }
+  72% {
+    transform: rotateX(calc(var(--target-rx, 0deg) + 225deg)) rotateY(calc(var(--target-ry, 0deg) + 360deg)) rotateZ(60deg);
+  }
+  86% {
+    transform: rotateX(calc(var(--target-rx, 0deg) + 75deg)) rotateY(calc(var(--target-ry, 0deg) + 120deg)) rotateZ(20deg);
+  }
+  95% {
+    transform: rotateX(calc(var(--target-rx, 0deg) + 10deg)) rotateY(calc(var(--target-ry, 0deg) + 20deg)) rotateZ(3deg);
+  }
+  100% {
+    transform: rotateX(var(--target-rx, 0deg)) rotateY(var(--target-ry, 0deg)) rotateZ(0deg);
+  }
+}
+
+/* Rolagem Natural com Desaceleração Física - Dado 2 */
+.die-3d-cube.die-rolling-natural-2 {
+  animation: dieNaturalRoll2 1.7s cubic-bezier(0.22, 0.82, 0.28, 1) forwards;
+}
+
+@keyframes dieNaturalRoll2 {
+  0% {
+    transform: rotateX(calc(var(--target-rx, 0deg) + 1440deg)) rotateY(calc(var(--target-ry, 0deg) + 1080deg)) rotateZ(-360deg);
+  }
+  30% {
+    transform: rotateX(calc(var(--target-rx, 0deg) + 990deg)) rotateY(calc(var(--target-ry, 0deg) + 720deg)) rotateZ(-220deg);
+  }
+  54% {
+    transform: rotateX(calc(var(--target-rx, 0deg) + 630deg)) rotateY(calc(var(--target-ry, 0deg) + 450deg)) rotateZ(-120deg);
+  }
+  74% {
+    transform: rotateX(calc(var(--target-rx, 0deg) + 360deg)) rotateY(calc(var(--target-ry, 0deg) + 225deg)) rotateZ(-55deg);
+  }
+  87% {
+    transform: rotateX(calc(var(--target-rx, 0deg) + 120deg)) rotateY(calc(var(--target-ry, 0deg) + 75deg)) rotateZ(-18deg);
+  }
+  95% {
+    transform: rotateX(calc(var(--target-rx, 0deg) + 15deg)) rotateY(calc(var(--target-ry, 0deg) + 10deg)) rotateZ(-3deg);
+  }
+  100% {
+    transform: rotateX(var(--target-rx, 0deg)) rotateY(var(--target-ry, 0deg)) rotateZ(0deg);
+  }
+}
+
+@keyframes dieTumbleSpin {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  }
+  33% {
+    transform: rotateX(240deg) rotateY(180deg) rotateZ(120deg);
+  }
+  66% {
+    transform: rotateX(480deg) rotateY(360deg) rotateZ(240deg);
+  }
+  100% {
+    transform: rotateX(720deg) rotateY(540deg) rotateZ(360deg);
+  }
+}
+
+/* Faces do Dado */
+.die-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #1b222d, #0f131a);
+  border: 1.5px solid #3d4f66;
+  border-radius: 4px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.9);
+  backface-visibility: hidden;
+}
+
+/* Posicionamento 3D de cada face em relação ao centro (--die-half-size) */
+.die-face-1 {
+  transform: rotateY(0deg) translateZ(var(--die-half-size));
+  border-color: #64b5f6;
+}
+
+.die-face-6 {
+  transform: rotateY(180deg) translateZ(var(--die-half-size));
+  border-color: #ffb74d;
+}
+
+.die-face-2 {
+  transform: rotateY(90deg) translateZ(var(--die-half-size));
+  border-color: #81c784;
+}
+
+.die-face-5 {
+  transform: rotateY(-90deg) translateZ(var(--die-half-size));
+  border-color: #ba68c8;
+}
+
+.die-face-3 {
+  transform: rotateX(90deg) translateZ(var(--die-half-size));
+  border-color: #4dd0e1;
+}
+
+.die-face-4 {
+  transform: rotateX(-90deg) translateZ(var(--die-half-size));
+  border-color: #e57373;
+}
+
+/* Grade de Pips (Pontos do Dado) */
+.die-pip-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 82%;
+  height: 82%;
+  pointer-events: none;
+}
+
+.die-pip-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.die-pip {
+  border-radius: 50%;
+  background: #64b5f6;
+  box-shadow: 0 0 4px #64b5f6, 0 0 8px rgba(100, 181, 246, 0.5);
+  display: inline-block;
+}
+
+.die-face-1 .die-pip {
+  background: #ff5252;
+  box-shadow: 0 0 5px #ff5252, 0 0 8px rgba(255, 82, 82, 0.6);
+}
+
+/* Palco Central de Rolagem 3D */
+.dice-roll-stage-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(5, 7, 10, 0.82);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  animation: diceStageFadeIn 0.22s ease-out;
+}
+
+@keyframes diceStageFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dice-roll-stage-box {
+  background: #0f141c;
+  border: 1px solid #2f3b4c;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.9), 0 0 20px rgba(100, 181, 246, 0.25);
+  padding: 24px 36px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  min-width: 300px;
+  user-select: none;
+  animation: diceBoxPopIn 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes diceBoxPopIn {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Palco e Tabuleiro de Lançamento de Dados */
+.dice-tray-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  border-bottom: 1px solid #232b36;
+  padding-bottom: 8px;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+}
+
+.dice-tray-title {
+  color: #8899aa;
+  font-weight: bold;
+}
+
+.dice-tray-hint {
+  color: #556677;
+  font-size: 0.7rem;
+}
+
+/* Tabuleiro / Arena de Lançamento Físico */
+.dice-tray-arena {
+  width: 390px;
+  max-width: 85vw;
+  height: 180px;
+  background: radial-gradient(circle at 50% 50%, #151a23 0%, #0d1017 80%, #080a0e 100%);
+  border: 2px solid #2c3848;
+  border-radius: 10px;
+  box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.9), 0 0 18px rgba(100, 181, 246, 0.15);
+  position: relative;
+  overflow: hidden;
+  perspective: 900px;
+}
+
+.dice-tray-felt {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.dice-tray-center-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 140px;
+  height: 90px;
+  border: 1px dashed rgba(100, 181, 246, 0.15);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Conector matemático "+" entre os dados no tabuleiro */
+.dice-tray-math-connector {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.dice-tray-math-connector.visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.dice-tray-plus {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #ffb74d;
+  text-shadow: 0 0 10px rgba(255, 183, 77, 0.5);
+}
+
+/* Wrappers dos Lançamentos de Dados 1 e 2 */
+.die-toss-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 54px;
+  height: 54px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.die-toss-1,
+.die-toss-2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Elevador Aéreo (Quiques e Gravidade no Eixo Z) */
+.die-air-elevator {
+  position: relative;
+  transform-style: preserve-3d;
+  will-change: transform;
+  z-index: 2;
+  transition: none;
+}
+
+/* Sombra Dinâmica Projetada no Chão de Feltro */
+.die-floor-shadow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 52px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0) 70%);
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform, opacity, filter;
+  transition: none;
+}
+
+.dice-roll-result-banner {
+  font-size: 0.9rem;
+  letter-spacing: 1.5px;
+  text-align: center;
+}
+
+.dice-rolling-text {
+  color: #8899aa;
+  animation: dicePulseText 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes dicePulseText {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
+}
+
+.dice-settled-text {
+  color: #e0e0e0;
+}
+
+.dice-total-highlight {
+  color: #64b5f6;
+  font-weight: bold;
+  font-size: 1.15rem;
+  text-shadow: 0 0 8px rgba(100, 181, 246, 0.6);
+}
+
+
 
 
