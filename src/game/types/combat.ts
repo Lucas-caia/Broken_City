@@ -7,6 +7,9 @@ export interface CombatCard {
   damage: number; // Dano calculado com base nos atributos do jogador
   description: string;
   weaponId?: string; // ID do item/arma de origem, se houver
+  type?: string; // "ATAQUE", "HABILIDADE", "DEFESA"
+  imageUrl?: string; // Arte ou chave de imagem da carta
+  themeColor?: string; // Cor do tema / banner (ex: #78c3c7, #ffb74d, #e57373)
 }
 
 export interface DiceRoll {

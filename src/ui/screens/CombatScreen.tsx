@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useGameState } from '../../game/core/GameStateContext';
 import { useAudio } from '../context/AudioContext';
 import { getEventImageUrl } from '../utils/assetHelper';
+import { CardTemplate } from '../components/CardTemplate';
 import '../../styles/global.css';
 
 const DICE_ICONS = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
@@ -210,38 +211,25 @@ const CombatScreen: React.FC = () => {
               const canPlay = !playedCardId && combat.availablePoints >= card.cost;
 
               return (
-                <div
+                <CardTemplate
                   key={card.id}
-                  className={`combat-card ${canPlay ? 'playable' : 'disabled'} ${
-                    isPlaying ? 'card-playing' : ''
-                  }`}
+                  name={card.name}
+                  cost={card.cost}
+                  type={card.type || 'ATAQUE'}
+                  damage={card.damage}
+                  description={card.description}
+                  imageUrl={card.imageUrl}
+                  themeColor={card.themeColor || '#78c3c7'}
+                  size="hand"
+                  canPlay={canPlay}
+                  isPlaying={isPlaying}
                   onMouseEnter={canPlay ? playHover : undefined}
                   onClick={() => {
                     if (canPlay) {
                       handleCardClick(card.id);
                     }
                   }}
-                >
-                  <div className="combat-card-top">
-                    <span className="combat-card-cost">{card.cost} PT</span>
-                    <span className="combat-card-dmg">🗡 {card.damage}</span>
-                  </div>
-                  <div className="combat-card-title">{card.name}</div>
-                  <div className="combat-card-desc">{card.description}</div>
-                  <button
-                    className="combat-card-btn"
-                    disabled={!canPlay}
-                    onMouseEnter={canPlay ? playHover : undefined}
-                    onClick={e => {
-                      e.stopPropagation();
-                      if (canPlay) {
-                        handleCardClick(card.id);
-                      }
-                    }}
-                  >
-                    {isPlaying ? 'LANÇANDO...' : canPlay ? 'JOGAR' : 'SEM PONTOS'}
-                  </button>
-                </div>
+                />
               );
             })
           )}

@@ -15,6 +15,8 @@ export interface WeaponDefinition {
   cost: number;
   calculateDamage: (strength: number, dexterity: number, level: number) => number;
   description: string;
+  type?: string;
+  themeColor?: string;
 }
 
 /**
@@ -35,22 +37,28 @@ function getWeaponDefinitions(
         weaponId: 'martelo',
         cardName: 'Martelada',
         cost: 3,
+        type: 'ATAQUE',
+        themeColor: '#ffb74d',
         calculateDamage: (str, _, lvl) => Math.max(1, Math.round(str * 1.5 + lvl)),
-        description: 'Impacto esmagador que golpeia o adversário.',
+        description: 'Impacto esmagador que golpeia o adversário com força bruta.',
       });
     } else if (itemId === 'faca_trincheira') {
       weapons.push({
         weaponId: 'faca_trincheira',
         cardName: 'Golpe de Faca',
         cost: 2,
+        type: 'ATAQUE',
+        themeColor: '#78c3c7',
         calculateDamage: (str, dex, lvl) => Math.max(1, str + dex + lvl),
-        description: 'Ataque cortante rápido e preciso.',
+        description: 'Ataque cortante rápido e preciso visando pontos vitais.',
       });
     } else if (item.type === 'EQUIPMENT' && item.effects.some(e => e.target === 'STRENGTH' && e.value > 0)) {
       weapons.push({
         weaponId: itemId,
         cardName: `Ataque com ${item.name}`,
         cost: 3,
+        type: 'ATAQUE',
+        themeColor: '#90caf9',
         calculateDamage: (str, _, lvl) => Math.max(1, str + lvl + 2),
         description: `Golpe desferido com ${item.name}.`,
       });
@@ -105,6 +113,8 @@ export function generateDeck(
         cost: 2,
         damage: punchDamage,
         description: `Golpe desarmado causando ${punchDamage} de dano (FOR ${effectiveAttrs.strength} + Nível ${level}).`,
+        type: 'ATAQUE',
+        themeColor: '#e57373',
       });
     }
   } else if (weapons.length === 1) {
@@ -119,6 +129,8 @@ export function generateDeck(
         damage: dmg,
         description: `${weapon.description} (Causa ${dmg} de dano).`,
         weaponId: weapon.weaponId,
+        type: weapon.type || 'ATAQUE',
+        themeColor: weapon.themeColor || '#78c3c7',
       });
     }
   } else {
@@ -140,6 +152,8 @@ export function generateDeck(
           damage: dmg,
           description: `${weapon.description} (Causa ${dmg} de dano).`,
           weaponId: weapon.weaponId,
+          type: weapon.type || 'ATAQUE',
+          themeColor: weapon.themeColor || '#78c3c7',
         });
       }
     }
